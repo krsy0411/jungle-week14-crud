@@ -47,7 +47,7 @@ services:
       JWT_SECRET: dev-jwt-secret-for-local-docker
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      FRONTEND_URL: http://localhost
+      FRONTEND_URL: http://localhost:5173
       PORT: 3000
     ports:
       - "3000:3000"
