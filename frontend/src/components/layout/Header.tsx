@@ -1,7 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export const Header: React.FC<{ isLoggedIn: boolean; onLogout: () => void }> = ({
+interface HeaderProps {
+  isLoggedIn: boolean;
+  onLogout: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({
   isLoggedIn,
   onLogout,
 }) => {

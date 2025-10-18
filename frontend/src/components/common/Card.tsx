@@ -7,6 +7,11 @@ interface CardProps {
   hoverable?: boolean;
 }
 
+interface CardSectionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
 export const Card: React.FC<CardProps> = ({
   children,
   className,
@@ -25,19 +30,19 @@ export const Card: React.FC<CardProps> = ({
   );
 };
 
-export const CardHeader: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export const CardHeader: React.FC<CardSectionProps> = ({
   children,
   className,
 }) => (
   <div className={`px-4 py-3 border-b border-secondary-100 ${className}`}>{children}</div>
 );
 
-export const CardBody: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export const CardBody: React.FC<CardSectionProps> = ({
   children,
   className,
 }) => <div className={`px-4 py-4 ${className}`}>{children}</div>;
 
-export const CardFooter: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export const CardFooter: React.FC<CardSectionProps> = ({
   children,
   className,
 }) => (
