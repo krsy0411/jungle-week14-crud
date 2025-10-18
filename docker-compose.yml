@@ -38,14 +38,16 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NODE_ENV: production
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-      DATABASE_NAME: board_db
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: board_db
+      JWT_SECRET: dev-jwt-secret-for-local-docker
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      FRONTEND_URL: http://localhost
       PORT: 3000
     ports:
       - "3000:3000"

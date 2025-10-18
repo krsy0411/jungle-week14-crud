@@ -1,10 +1,14 @@
 import 'reflect-metadata';
+import * as dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
+  // 부트스트랩 전에 dotenv로 환경파일을 로드합니다. (NODE_ENV에 따라 .env.development 등 로드)
+  dotenv.config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
   const app = await NestFactory.create(AppModule);
 
   // 글로벌 prefix 설정
@@ -23,8 +27,9 @@ async function bootstrap() {
   );
 
   // CORS 설정
+  const configService = app.get(ConfigService);
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: configService.get<string>('FRONTEND_URL', 'http://localhost:5173'),
     credentials: true,
   });
 
@@ -43,7 +48,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}`);
   console.log(`Swagger docs available at http://localhost:${port}/api/docs`);

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node dist/main.js",
-    "start:dev": "nest start --watch",
+    "start:dev": "NODE_ENV=development nest start --watch",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "jest"
