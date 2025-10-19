@@ -1,4 +1,5 @@
 import React from 'react';
+import { LoadingIcon } from './LoadingIcon';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'danger';
@@ -36,15 +37,18 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${
-        disabled || isLoading ? disabledStyles : ''
-      } ${className}`}
+      className={`
+        ${baseStyles} 
+        ${variants[variant]} 
+        ${sizes[size]} 
+        ${disabled || isLoading ? disabledStyles : ''} 
+        ${className}`}
       disabled={disabled || isLoading}
       {...props}
     >
       {isLoading ? (
         <span className="flex items-center justify-center gap-2">
-          <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          <LoadingIcon size="sm" />
           로딩중...
         </span>
       ) : (

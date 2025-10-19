@@ -7,9 +7,8 @@ interface CardProps {
   hoverable?: boolean;
 }
 
-interface CardSectionProps {
+interface CardSectionProps extends Partial<CardProps> {
   children: React.ReactNode;
-  className?: string;
 }
 
 export const Card: React.FC<CardProps> = ({

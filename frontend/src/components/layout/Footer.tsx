@@ -9,20 +9,20 @@ export const Footer: React.FC = () => {
           <div>
             <h3 className="font-bold mb-2">About</h3>
             <p className="text-secondary-300 text-sm">
-              깔끔한 게시판 애플리케이션으로 게시글과 댓글을 관리하세요.
+              정글 10기 | 실력 다지기 프로젝트
             </p>
           </div>
           <div>
             <h3 className="font-bold mb-2">Link</h3>
             <ul className="text-secondary-300 text-sm space-y-1">
-              <li><Link to="/posts" className="hover:text-white">게시글</Link></li>
-              <li><Link to="/profile" className="hover:text-white">내 정보</Link></li>
+              <li><Link to="/posts">게시글</Link></li>
+              <li><Link to="/profile">내 정보</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-bold mb-2">Contact</h3>
             <p className="text-secondary-300 text-sm">
-              문제가 있으신가요? ThisTimeNull에게 연락하세요.
+              문제가 있는 자는 ThisTimeNull에게...
             </p>
           </div>
         </div>
