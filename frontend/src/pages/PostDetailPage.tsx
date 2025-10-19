@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, Input, Alert } from '../components/common';
+import { Button, Card, CardBody, CardHeader, Input, Alert, Modal } from '../components/common';
 import { apiService } from '../services/api';
 import { Post, Comment, CreateCommentRequest } from '../types';
 
@@ -14,6 +14,11 @@ export const PostDetailPage: React.FC = () => {
   const [commentContent, setCommentContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
+  const [isDeletePostModalOpen, setIsDeletePostModalOpen] = useState(false);
+  const [isDeleteCommentModalOpen, setIsDeleteCommentModalOpen] = useState(false);
+  const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -55,16 +60,47 @@ export const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleDeleteComment = async (commentId: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    if (!postId) return;
+  const openDeletePostModal = () => {
+    setIsDeletePostModalOpen(true);
+  };
 
+  const handleDeletePost = async () => {
+    if (!post) return;
+
+    setIsDeletingPost(true);
     try {
-      await apiService.deleteComment(Number(postId), commentId);
-      setComments(comments.filter((c) => c.id !== commentId));
+      await apiService.deletePost(post.id);
+      setSuccess('게시글이 삭제되었습니다');
+      setTimeout(() => {
+        navigate('/posts');
+      }, 1000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || '게시글 삭제에 실패했습니다');
+      setIsDeletePostModalOpen(false);
+    } finally {
+      setIsDeletingPost(false);
+    }
+  };
+
+  const openDeleteCommentModal = (commentId: number) => {
+    setDeleteCommentId(commentId);
+    setIsDeleteCommentModalOpen(true);
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deleteCommentId || !postId) return;
+
+    setIsDeletingComment(true);
+    try {
+      await apiService.deleteComment(Number(postId), deleteCommentId);
+      setComments(comments.filter((c) => c.id !== deleteCommentId));
       setSuccess('댓글이 삭제되었습니다');
+      setIsDeleteCommentModalOpen(false);
+      setDeleteCommentId(null);
     } catch (err: any) {
       setError(err.response?.data?.message || '댓글 삭제에 실패했습니다');
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -130,16 +166,7 @@ export const PostDetailPage: React.FC = () => {
               <Button
                 variant="danger"
                 size="sm"
-                onClick={() => {
-                  if (confirm('정말 삭제하시겠습니까?')) {
-                    apiService.deletePost(post.id).then(() => {
-                      setSuccess('게시글이 삭제되었습니다');
-                      setTimeout(() => {
-                        navigate('/posts');
-                      }, 1000);
-                    });
-                  }
-                }}
+                onClick={() => openDeletePostModal()}
               >
                 삭제
               </Button>
@@ -195,7 +222,7 @@ export const PostDetailPage: React.FC = () => {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleDeleteComment(comment.id)}
+                      onClick={() => openDeleteCommentModal(comment.id)}
                     >
                       삭제
                     </Button>
@@ -207,6 +234,35 @@ export const PostDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isDeletePostModalOpen}
+        title="게시글 삭제"
+        onClose={() => setIsDeletePostModalOpen(false)}
+        onConfirm={handleDeletePost}
+        confirmText="삭제"
+        cancelText="취소"
+        isLoading={isDeletingPost}
+      >
+        <p className="text-secondary-700">정말 이 게시글을 삭제하시겠습니까?</p>
+        <p className="text-sm text-secondary-500 mt-2">삭제된 게시글은 복구할 수 없습니다.</p>
+      </Modal>
+
+      <Modal
+        isOpen={isDeleteCommentModalOpen}
+        title="댓글 삭제"
+        onClose={() => {
+          setIsDeleteCommentModalOpen(false);
+          setDeleteCommentId(null);
+        }}
+        onConfirm={handleDeleteComment}
+        confirmText="삭제"
+        cancelText="취소"
+        isLoading={isDeletingComment}
+      >
+        <p className="text-secondary-700">정말 이 댓글을 삭제하시겠습니까?</p>
+        <p className="text-sm text-secondary-500 mt-2">삭제된 댓글은 복구할 수 없습니다.</p>
+      </Modal>
     </div>
   );
 };

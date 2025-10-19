@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, CardFooter, Alert } from '../components/common';
+import { Button, Card, CardBody, CardHeader, CardFooter, Alert, Modal } from '../components/common';
 import { apiService } from '../services/api';
 import { Post } from '../types';
 
@@ -10,6 +10,9 @@ export const PostsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -26,15 +29,25 @@ export const PostsPage: React.FC = () => {
     fetchPosts();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+  const openDeleteModal = (id: number) => {
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
 
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+
+    setIsDeleting(true);
     try {
-      await apiService.deletePost(id);
-      setPosts(posts.filter((post) => post.id !== id));
+      await apiService.deletePost(deleteTargetId);
+      setPosts(posts.filter((post) => post.id !== deleteTargetId));
       setSuccess('게시글이 삭제되었습니다');
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     } catch (err: any) {
       setError(err.response?.data?.message || '게시글 삭제에 실패했습니다');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -109,7 +122,7 @@ export const PostsPage: React.FC = () => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(post.id);
+                        openDeleteModal(post.id);
                       }}
                     >
                       삭제
@@ -121,6 +134,22 @@ export const PostsPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      <Modal
+        isOpen={isDeleteModalOpen}
+        title="게시글 삭제"
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteTargetId(null);
+        }}
+        onConfirm={handleDelete}
+        confirmText="삭제"
+        cancelText="취소"
+        isLoading={isDeleting}
+      >
+        <p className="text-secondary-700">정말 이 게시글을 삭제하시겠습니까?</p>
+        <p className="text-sm text-secondary-500 mt-2">삭제된 게시글은 복구할 수 없습니다.</p>
+      </Modal>
     </div>
   );
 };
