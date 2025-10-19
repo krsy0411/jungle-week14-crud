@@ -13,6 +13,7 @@ export const PostDetailPage: React.FC = () => {
   const [error, setError] = useState('');
   const [commentContent, setCommentContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -46,7 +47,7 @@ export const PostDetailPage: React.FC = () => {
       const updatedComments = await apiService.getComments(Number(postId));
       setComments(updatedComments.data);
       setCommentContent('');
-      alert('댓글이 작성되었습니다');
+      setSuccess('댓글이 작성되었습니다');
     } catch (err: any) {
       setError(err.response?.data?.message || '댓글 작성에 실패했습니다');
     } finally {
@@ -61,7 +62,7 @@ export const PostDetailPage: React.FC = () => {
     try {
       await apiService.deleteComment(Number(postId), commentId);
       setComments(comments.filter((c) => c.id !== commentId));
-      alert('댓글이 삭제되었습니다');
+      setSuccess('댓글이 삭제되었습니다');
     } catch (err: any) {
       setError(err.response?.data?.message || '댓글 삭제에 실패했습니다');
     }
@@ -100,6 +101,14 @@ export const PostDetailPage: React.FC = () => {
         />
       )}
 
+      {success && (
+        <Alert
+          type="success"
+          message={success}
+          onClose={() => setSuccess('')}
+        />
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -124,8 +133,10 @@ export const PostDetailPage: React.FC = () => {
                 onClick={() => {
                   if (confirm('정말 삭제하시겠습니까?')) {
                     apiService.deletePost(post.id).then(() => {
-                      alert('게시글이 삭제되었습니다');
-                      navigate('/posts');
+                      setSuccess('게시글이 삭제되었습니다');
+                      setTimeout(() => {
+                        navigate('/posts');
+                      }, 1000);
                     });
                   }
                 }}

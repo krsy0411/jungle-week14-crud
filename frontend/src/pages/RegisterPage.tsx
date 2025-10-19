@@ -15,6 +15,7 @@ export const RegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,8 +50,10 @@ export const RegisterPage: React.FC = () => {
 
     try {
       await apiService.register(formData);
-      alert('회원가입에 성공했습니다. 로그인해주세요.');
-      navigate('/login');
+      setSuccess('회원가입에 성공했습니다. 로그인해주세요.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } catch (error: any) {
       setApiError(error.response?.data?.message || '회원가입에 실패했습니다');
     } finally {
@@ -69,6 +72,14 @@ export const RegisterPage: React.FC = () => {
               type="error"
               message={apiError}
               onClose={() => setApiError('')}
+            />
+          )}
+
+          {success && (
+            <Alert
+              type="success"
+              message={success}
+              onClose={() => setSuccess('')}
             />
           )}
 

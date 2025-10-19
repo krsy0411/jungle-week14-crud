@@ -9,6 +9,7 @@ export const PostsPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -31,7 +32,7 @@ export const PostsPage: React.FC = () => {
     try {
       await apiService.deletePost(id);
       setPosts(posts.filter((post) => post.id !== id));
-      alert('게시글이 삭제되었습니다');
+      setSuccess('게시글이 삭제되었습니다');
     } catch (err: any) {
       setError(err.response?.data?.message || '게시글 삭제에 실패했습니다');
     }
@@ -59,6 +60,14 @@ export const PostsPage: React.FC = () => {
           type="error"
           message={error}
           onClose={() => setError('')}
+        />
+      )}
+
+      {success && (
+        <Alert
+          type="success"
+          message={success}
+          onClose={() => setSuccess('')}
         />
       )}
 
