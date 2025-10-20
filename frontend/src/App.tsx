@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { PostsPage } from './pages/PostsPage';
 import { PostDetailPage } from './pages/PostDetailPage';
+import { PostCreatePage } from './pages/PostCreatePage';
 import { User } from './types';
 
 interface ProtectedRouteProps {
@@ -64,6 +65,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute isLoggedIn={isLoggedIn}>
                   <PostsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/posts/create"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <PostCreatePage />
                 </ProtectedRoute>
               }
             />
