@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, CardFooter, Alert, Modal } from '../components/common';
-import { apiService } from '../services/api';
-import { Post } from '../types';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  CardFooter,
+  Alert,
+  Modal,
+} from "../components/common";
+import { apiService } from "../services/api";
+import { Post } from "../types";
 
 export const PostsPage: React.FC = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -20,7 +28,7 @@ export const PostsPage: React.FC = () => {
         const response = await apiService.getPosts();
         setPosts(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.message || '게시글을 불러오지 못했습니다');
+        setError(err.response?.data?.message || "게시글을 불러오지 못했습니다");
       } finally {
         setIsLoading(false);
       }
@@ -41,11 +49,11 @@ export const PostsPage: React.FC = () => {
     try {
       await apiService.deletePost(deleteTargetId);
       setPosts(posts.filter((post) => post.id !== deleteTargetId));
-      setSuccess('게시글이 삭제되었습니다');
+      setSuccess("게시글이 삭제되었습니다");
       setIsDeleteModalOpen(false);
       setDeleteTargetId(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || '게시글 삭제에 실패했습니다');
+      setError(err.response?.data?.message || "게시글 삭제에 실패했습니다");
     } finally {
       setIsDeleting(false);
     }
@@ -63,46 +71,52 @@ export const PostsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-secondary-900">게시글 목록</h1>
-        <Button variant="primary" onClick={() => navigate('/posts/create')}>
+        <Button variant="primary" onClick={() => navigate("/posts/create")}>
           새 게시글 작성
         </Button>
       </div>
 
       {error && (
-        <Alert
-          type="error"
-          message={error}
-          onClose={() => setError('')}
-        />
+        <Alert type="error" message={error} onClose={() => setError("")} />
       )}
 
       {success && (
         <Alert
           type="success"
           message={success}
-          onClose={() => setSuccess('')}
+          onClose={() => setSuccess("")}
         />
       )}
 
       {posts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-secondary-600 mb-4">게시글이 없습니다</p>
-          <Button variant="primary" onClick={() => navigate('/posts/create')}>
+          <Button variant="primary" onClick={() => navigate("/posts/create")}>
             첫 게시글 작성하기
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           {posts.map((post) => (
-            <Card key={post.id} hoverable onClick={() => navigate(`/posts/${post.id}`)}>
+            <Card
+              key={post.id}
+              hoverable
+              onClick={() => navigate(`/posts/${post.id}`)}
+            >
               <CardBody>
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-secondary-900 mb-2">{post.title}</h2>
-                    <p className="text-secondary-600 line-clamp-2">{post.content}</p>
+                    <h2 className="text-xl font-bold text-secondary-900 mb-2">
+                      {post.title}
+                    </h2>
+                    <p className="text-secondary-600 line-clamp-2">
+                      {post.content}
+                    </p>
                     <div className="flex items-center gap-4 mt-4 text-sm text-secondary-500">
                       <span>{post.author.username}</span>
-                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
                       <span>💬 {post.commentCount || 0}</span>
                     </div>
                   </div>
@@ -148,7 +162,9 @@ export const PostsPage: React.FC = () => {
         isLoading={isDeleting}
       >
         <p className="text-secondary-700">정말 이 게시글을 삭제하시겠습니까?</p>
-        <p className="text-sm text-secondary-500 mt-2">삭제된 게시글은 복구할 수 없습니다.</p>
+        <p className="text-sm text-secondary-500 mt-2">
+          삭제된 게시글은 복구할 수 없습니다.
+        </p>
       </Modal>
     </div>
   );

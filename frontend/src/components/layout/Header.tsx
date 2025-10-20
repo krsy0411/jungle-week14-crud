@@ -1,15 +1,12 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   isLoggedIn: boolean;
   onLogout: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  isLoggedIn,
-  onLogout,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
   const navigate = useNavigate();
 
   return (
@@ -28,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => {
                   onLogout();
-                  navigate('/login');
+                  navigate("/login");
                 }}
                 className="px-4 py-2 bg-white text-primary-600 rounded hover:bg-primary-50 transition"
               >
@@ -37,10 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="hover:opacity-90 transition"
-              >
+              <Link to="/login" className="hover:opacity-90 transition">
                 로그인
               </Link>
               <Link

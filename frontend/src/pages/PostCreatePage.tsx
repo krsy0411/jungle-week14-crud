@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, Input, Alert } from '../components/common';
-import { apiService } from '../services/api';
-import { CreatePostRequest } from '../types';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Alert,
+} from "../components/common";
+import { apiService } from "../services/api";
+import { CreatePostRequest } from "../types";
 
 export const PostCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 입력해주세요.');
+      setError("제목과 내용을 입력해주세요.");
       return;
     }
 
     setIsSubmitting(true);
-    setError('');
+    setError("");
 
     const payload: CreatePostRequest = {
       title: title.trim(),
@@ -30,7 +37,7 @@ export const PostCreatePage: React.FC = () => {
       const created = await apiService.createPost(payload);
       navigate(`/posts/${created.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || '게시글 생성에 실패했습니다');
+      setError(err.response?.data?.message || "게시글 생성에 실패했습니다");
     } finally {
       setIsSubmitting(false);
     }
@@ -43,7 +50,9 @@ export const PostCreatePage: React.FC = () => {
           <h1 className="text-2xl font-bold">새 게시글 작성</h1>
         </CardHeader>
         <CardBody>
-          {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+          {error && (
+            <Alert type="error" message={error} onClose={() => setError("")} />
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -54,7 +63,9 @@ export const PostCreatePage: React.FC = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">내용</label>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                내용
+              </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -65,7 +76,7 @@ export const PostCreatePage: React.FC = () => {
             </div>
 
             <div className="flex gap-2 justify-end">
-              <Button variant="secondary" onClick={() => navigate('/posts')}>
+              <Button variant="secondary" onClick={() => navigate("/posts")}>
                 취소
               </Button>
               <Button type="submit" variant="primary" isLoading={isSubmitting}>

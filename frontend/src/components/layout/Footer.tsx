@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
 export const Footer: React.FC = () => {
   return (
@@ -15,8 +15,12 @@ export const Footer: React.FC = () => {
           <div>
             <h3 className="font-bold mb-2">Link</h3>
             <ul className="text-secondary-300 text-sm space-y-1">
-              <li><Link to="/posts">게시글</Link></li>
-              <li><Link to="/profile">내 정보</Link></li>
+              <li>
+                <Link to="/posts">게시글</Link>
+              </li>
+              <li>
+                <Link to="/profile">내 정보</Link>
+              </li>
             </ul>
           </div>
           <div>

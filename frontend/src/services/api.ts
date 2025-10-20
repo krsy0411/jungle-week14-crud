@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   LoginRequest,
   RegisterRequest,
@@ -11,9 +11,9 @@ import {
   Comment,
   User,
   PaginatedResponse,
-} from '../types';
+} from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 class ApiService {
   private client: AxiosInstance;
@@ -22,13 +22,13 @@ class ApiService {
     this.client = axios.create({
       baseURL: API_URL,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     // 요청 인터셉터: Authorization 헤더 추가
     this.client.interceptors.request.use((config) => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -40,29 +40,32 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
         }
         return Promise.reject(error);
-      },
+      }
     );
   }
 
   // ========== Auth ==========
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await this.client.post('/auth/login', data);
+    const response = await this.client.post("/auth/login", data);
     return response.data;
   }
 
   async register(data: RegisterRequest): Promise<User> {
-    const response = await this.client.post('/auth/register', data);
+    const response = await this.client.post("/auth/register", data);
     return response.data;
   }
 
   // ========== Posts ==========
-  async getPosts(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Post>> {
-    const response = await this.client.get('/posts', {
+  async getPosts(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedResponse<Post>> {
+    const response = await this.client.get("/posts", {
       params: { page, limit },
     });
     return response.data;
@@ -74,7 +77,7 @@ class ApiService {
   }
 
   async createPost(data: CreatePostRequest): Promise<Post> {
-    const response = await this.client.post('/posts', data);
+    const response = await this.client.post("/posts", data);
     return response.data;
   }
 
@@ -91,7 +94,7 @@ class ApiService {
   async getComments(
     postId: number,
     page: number = 1,
-    limit: number = 20,
+    limit: number = 20
   ): Promise<PaginatedResponse<Comment>> {
     const response = await this.client.get(`/posts/${postId}/comments`, {
       params: { page, limit },
@@ -99,7 +102,10 @@ class ApiService {
     return response.data;
   }
 
-  async createComment(postId: number, data: CreateCommentRequest): Promise<Comment> {
+  async createComment(
+    postId: number,
+    data: CreateCommentRequest
+  ): Promise<Comment> {
     const response = await this.client.post(`/posts/${postId}/comments`, data);
     return response.data;
   }
@@ -107,9 +113,12 @@ class ApiService {
   async updateComment(
     postId: number,
     commentId: number,
-    data: UpdateCommentRequest,
+    data: UpdateCommentRequest
   ): Promise<Comment> {
-    const response = await this.client.patch(`/posts/${postId}/comments/${commentId}`, data);
+    const response = await this.client.patch(
+      `/posts/${postId}/comments/${commentId}`,
+      data
+    );
     return response.data;
   }
 
