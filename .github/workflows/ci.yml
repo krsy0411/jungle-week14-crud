@@ -57,11 +57,11 @@ jobs:
 
       - name: Run linter
         working-directory: ./backend
-        run: npm run format -- --check || true
+        run: npm run format -- --check
 
       - name: Run tests
         working-directory: ./backend
-        run: npm test
+        run: npm test -- --passWithNoTests
         env:
           NODE_ENV: test
           DB_HOST: localhost
@@ -106,11 +106,11 @@ jobs:
 
       - name: Run linter
         working-directory: ./frontend
-        run: npm run format -- --check || true
+        run: npm run format -- --check
 
       - name: Run tests
         working-directory: ./frontend
-        run: npm test || true
+        run: npm test -- --passWithNoTests
 
       - name: Build frontend
         working-directory: ./frontend
