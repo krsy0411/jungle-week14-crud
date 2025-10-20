@@ -70,7 +70,7 @@ export class CommentsController {
     return await this.commentsService.create(postId, createCommentDto, user);
   }
 
-  @Patch('comments/:commentId')
+  @Patch('posts/:postId/comments/:commentId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 수정' })
@@ -89,7 +89,7 @@ export class CommentsController {
     return await this.commentsService.update(id, updateCommentDto, user);
   }
 
-  @Delete('comments/:commentId')
+  @Delete('posts/:postId/comments/:commentId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(204)
