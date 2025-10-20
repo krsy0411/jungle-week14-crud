@@ -125,6 +125,20 @@ class ApiService {
   async deleteComment(postId: number, commentId: number): Promise<void> {
     await this.client.delete(`/posts/${postId}/comments/${commentId}`);
   }
+
+  // ========== Likes ==========
+  async toggleLike(
+    postId: number,
+    isCurrentlyLiked: boolean
+  ): Promise<{ liked: boolean; likeCount: number }> {
+    if (isCurrentlyLiked) {
+      const response = await this.client.delete(`/posts/${postId}/like`);
+      return response.data;
+    } else {
+      const response = await this.client.post(`/posts/${postId}/like`);
+      return response.data;
+    }
+  }
 }
 
 export const apiService = new ApiService();

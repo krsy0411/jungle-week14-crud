@@ -20,6 +20,12 @@ export class PostResponseDto {
   @ApiProperty({ example: 5, description: "댓글 수" })
   commentCount?: number;
 
+  @ApiProperty({ example: 10, description: "좋아요 수" })
+  likeCount?: number;
+
+  @ApiProperty({ example: true, description: "현재 사용자의 좋아요 여부" })
+  isLiked?: boolean;
+
   @ApiProperty({ example: "2024-01-01T00:00:00Z" })
   createdAt: Date;
 

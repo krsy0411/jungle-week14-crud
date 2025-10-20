@@ -5,6 +5,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { UsersModule } from "./modules/users/users.module";
 import { PostsModule } from "./modules/posts/posts.module";
 import { CommentsModule } from "./modules/comments/comments.module";
+import { LikesModule } from "./modules/likes/likes.module";
 
 @Module({
   /* imports : 다른 모듈을 가져옴 */
@@ -29,6 +30,7 @@ import { CommentsModule } from "./modules/comments/comments.module";
     UsersModule,
     PostsModule,
     CommentsModule,
+    LikesModule,
   ],
   /* controllers : HTTP 요청을 처리하는 컨트롤러 */
   controllers: [],
