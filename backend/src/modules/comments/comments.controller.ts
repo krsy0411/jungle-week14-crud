@@ -82,7 +82,6 @@ export class CommentsController {
   @ApiResponse({ status: 422, description: '입력 데이터 검증 실패' })
   @ApiResponse({ status: 500, description: '서버 내부 오류' })
   async update(
-    @Param('postId', ParseIntPipe) postId: number,
     @Param('commentId', ParseIntPipe) id: number,
     @Body() updateCommentDto: CommentUpdateRequestDto,
     @CurrentUser() user: User,
@@ -101,7 +100,6 @@ export class CommentsController {
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
   @ApiResponse({ status: 500, description: '서버 내부 오류' })
   async remove(
-    @Param('postId', ParseIntPipe) postId: number,
     @Param('commentId', ParseIntPipe) id: number,
     @CurrentUser() user: User,
   ) {
