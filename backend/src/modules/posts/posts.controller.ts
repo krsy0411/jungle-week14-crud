@@ -71,9 +71,15 @@ export class PostsController {
   async findAll(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
-    @Query("search") search?: string
+    @Query("search") search?: string,
+    @CurrentUser() user?: User
   ) {
-    return await this.postsService.findAll(page, limit, search);
+    return await this.postsService.findAll(
+      page,
+      limit,
+      search,
+      user?.id
+    );
   }
 
   @Get(":postId")
@@ -86,8 +92,11 @@ export class PostsController {
   })
   @ApiResponse({ status: 404, description: "게시글을 찾을 수 없음" })
   @ApiResponse({ status: 500, description: "서버 내부 오류" })
-  async findOne(@Param("postId", ParseIntPipe) id: number) {
-    return await this.postsService.findOne(id);
+  async findOne(
+    @Param("postId", ParseIntPipe) id: number,
+    @CurrentUser() user?: User
+  ) {
+    return await this.postsService.findOne(id, user?.id);
   }
 
   @Patch(":postId")
