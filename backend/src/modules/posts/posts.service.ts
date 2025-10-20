@@ -101,8 +101,8 @@ export class PostsService {
     // 데이터에 댓글 개수, 좋아요 개수, isLiked 추가
     const dataWithCounts = data.map((post) => ({
       ...post,
-      commentCount: (commentCountMap.get(post.id) || 0),
-      likeCount: (likeCountMap.get(post.id) || 0),
+      commentCount: commentCountMap.get(post.id) || 0,
+      likeCount: likeCountMap.get(post.id) || 0,
       isLiked: isLikedMap.get(post.id) || false,
     }));
 

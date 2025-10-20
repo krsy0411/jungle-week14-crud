@@ -75,12 +75,7 @@ export class PostsController {
     @Query("search") search: string | undefined = undefined,
     @CurrentUser() user: User
   ) {
-    return await this.postsService.findAll(
-      page,
-      limit,
-      search,
-      user.id
-    );
+    return await this.postsService.findAll(page, limit, search, user.id);
   }
 
   @Get(":postId")
