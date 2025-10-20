@@ -8,6 +8,7 @@ import {
   Input,
   Alert,
   Modal,
+  Like,
 } from "../components/common";
 import { apiService } from "../services/api";
 import { Post, Comment, CreateCommentRequest } from "../types";
@@ -28,6 +29,7 @@ export const PostDetailPage: React.FC = () => {
   const [deleteCommentId, setDeleteCommentId] = useState<number | null>(null);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -113,6 +115,27 @@ export const PostDetailPage: React.FC = () => {
     }
   };
 
+  const handleToggleLike = async () => {
+    if (!post || !postId) return;
+
+    setIsLiking(true);
+    try {
+      const response = await apiService.toggleLike(
+        Number(postId),
+        (post.isLiked || false)
+      );
+      setPost({
+        ...post,
+        isLiked: response.liked,
+        likeCount: response.likeCount,
+      });
+    } catch (err: any) {
+      setError(err.response?.data?.message || "좋아요 처리에 실패했습니다");
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -164,6 +187,13 @@ export const PostDetailPage: React.FC = () => {
               <div className="flex items-center gap-4 mt-2 text-secondary-600">
                 <span>{post.author.username}</span>
                 <span>{new Date(post.createdAt).toLocaleString()}</span>
+                <Like
+                  isLiked={post.isLiked || false}
+                  likeCount={post.likeCount || 0}
+                  onToggle={handleToggleLike}
+                  isLoading={isLiking}
+                  size="md"
+                />
               </div>
             </div>
             <div className="flex gap-2">

@@ -8,6 +8,7 @@ import {
   CardFooter,
   Alert,
   Modal,
+  Like,
 } from "../components/common";
 import { apiService } from "../services/api";
 import { Post } from "../types";
@@ -21,6 +22,7 @@ export const PostsPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [likingPostId, setLikingPostId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -56,6 +58,28 @@ export const PostsPage: React.FC = () => {
       setError(err.response?.data?.message || "게시글 삭제에 실패했습니다");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleLike = async (postId: number, currentIsLiked: boolean) => {
+    setLikingPostId(postId);
+    try {
+      const response = await apiService.toggleLike(postId, currentIsLiked);
+      setPosts(
+        posts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: response.liked,
+                likeCount: response.likeCount,
+              }
+            : post
+        )
+      );
+    } catch (err: any) {
+      setError(err.response?.data?.message || "좋아요 처리에 실패했습니다");
+    } finally {
+      setLikingPostId(null);
     }
   };
 
@@ -118,6 +142,17 @@ export const PostsPage: React.FC = () => {
                         {new Date(post.createdAt).toLocaleDateString()}
                       </span>
                       <span>💬 {post.commentCount || 0}</span>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Like
+                          isLiked={post.isLiked || false}
+                          likeCount={post.likeCount || 0}
+                          onToggle={() =>
+                            handleToggleLike(post.id, (post.isLiked || false))
+                          }
+                          isLoading={likingPostId === post.id}
+                          size="sm"
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">

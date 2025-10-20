@@ -5,3 +5,4 @@ export { Alert } from "./Alert";
 export { Modal } from "./Modal";
 export { LoadingSpinner } from "./LoadingSpinner";
 export { LoadingIcon } from "./LoadingIcon";
+export { Like } from "./Like";

@@ -15,6 +15,8 @@ export interface Post {
   authorId: number;
   author: User;
   commentCount?: number;
+  likeCount?: number;
+  isLiked?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
