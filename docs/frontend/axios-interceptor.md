@@ -113,9 +113,11 @@ this.client.interceptors.response.use(
 interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 403) {
+    if (error.response.status === 403) {
       alert('권한이 없습니다'); // 너무 일반적
     }
+
+    return Promise.reject(error);
   }
 );
 ```
