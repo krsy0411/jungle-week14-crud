@@ -5,12 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-} from 'typeorm';
-import { Post } from '../../posts/entities/post.entity';
-import { Comment } from '../../comments/entities/comment.entity';
-import { Exclude } from 'class-transformer';
+} from "typeorm";
+import { Post } from "../../posts/entities/post.entity";
+import { Comment } from "../../comments/entities/comment.entity";
+import { Exclude } from "class-transformer";
 
-@Entity('users')
+@Entity("users")
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -25,10 +25,10 @@ export class User {
   @Exclude()
   password: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 
   @OneToMany(() => Post, (post) => post.author)

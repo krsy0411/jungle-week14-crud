@@ -1,17 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { LoginRequestDto } from './dto/login-request.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
-import { UserCreateRequestDto } from '../users/dto/user-create-request.dto';
-import { User } from '../users/entities/user.entity';
-import { JwtPayload } from './strategies/jwt.strategy';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import { LoginRequestDto } from "./dto/login-request.dto";
+import { LoginResponseDto } from "./dto/login-response.dto";
+import { UserCreateRequestDto } from "../users/dto/user-create-request.dto";
+import { User } from "../users/entities/user.entity";
+import { JwtPayload } from "./strategies/jwt.strategy";
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService,
+    private jwtService: JwtService
   ) {}
 
   async register(createUserDto: UserCreateRequestDto): Promise<User> {
@@ -22,16 +22,20 @@ export class AuthService {
     const user = await this.usersService.findByEmail(loginDto.email);
 
     if (!user) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+      throw new UnauthorizedException(
+        "이메일 또는 비밀번호가 올바르지 않습니다"
+      );
     }
 
     const isPasswordValid = await this.usersService.validatePassword(
       loginDto.password,
-      user.password,
+      user.password
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다');
+      throw new UnauthorizedException(
+        "이메일 또는 비밀번호가 올바르지 않습니다"
+      );
     }
 
     const payload: JwtPayload = {

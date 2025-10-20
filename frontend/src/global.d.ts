@@ -1,5 +1,5 @@
-declare module '*.css';
-declare module '*.scss';
+declare module "*.css";
+declare module "*.scss";
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string;

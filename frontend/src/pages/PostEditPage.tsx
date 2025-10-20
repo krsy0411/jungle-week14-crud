@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, CardBody, CardHeader, Input, Alert } from '../components/common';
-import { apiService } from '../services/api';
-import { Post, UpdatePostRequest } from '../types';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  Alert,
+} from "../components/common";
+import { apiService } from "../services/api";
+import { Post, UpdatePostRequest } from "../types";
 
 export const PostEditPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -23,7 +30,7 @@ export const PostEditPage: React.FC = () => {
         setTitle(data.title);
         setContent(data.content);
       } catch (err: any) {
-        setError(err.response?.data?.message || '게시글을 불러오지 못했습니다');
+        setError(err.response?.data?.message || "게시글을 불러오지 못했습니다");
       } finally {
         setIsLoading(false);
       }
@@ -36,12 +43,12 @@ export const PostEditPage: React.FC = () => {
     e.preventDefault();
     if (!postId) return;
     if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 입력해주세요.');
+      setError("제목과 내용을 입력해주세요.");
       return;
     }
 
     setIsSubmitting(true);
-    setError('');
+    setError("");
 
     const payload: UpdatePostRequest = {
       title: title.trim(),
@@ -52,7 +59,7 @@ export const PostEditPage: React.FC = () => {
       const updated = await apiService.updatePost(Number(postId), payload);
       navigate(`/posts/${updated.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || '게시글 수정에 실패했습니다');
+      setError(err.response?.data?.message || "게시글 수정에 실패했습니다");
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +77,9 @@ export const PostEditPage: React.FC = () => {
     return (
       <div className="text-center py-12">
         <p className="text-secondary-600">게시글을 찾을 수 없습니다</p>
-        <Button variant="primary" onClick={() => navigate('/posts')}>목록으로</Button>
+        <Button variant="primary" onClick={() => navigate("/posts")}>
+          목록으로
+        </Button>
       </div>
     );
   }
@@ -82,7 +91,9 @@ export const PostEditPage: React.FC = () => {
           <h1 className="text-2xl font-bold">게시글 수정</h1>
         </CardHeader>
         <CardBody>
-          {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+          {error && (
+            <Alert type="error" message={error} onClose={() => setError("")} />
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
@@ -93,7 +104,9 @@ export const PostEditPage: React.FC = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-secondary-700 mb-2">내용</label>
+              <label className="block text-sm font-medium text-secondary-700 mb-2">
+                내용
+              </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -104,7 +117,10 @@ export const PostEditPage: React.FC = () => {
             </div>
 
             <div className="flex gap-2 justify-end">
-              <Button variant="secondary" onClick={() => navigate(`/posts/${post.id}`)}>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(`/posts/${post.id}`)}
+              >
                 취소
               </Button>
               <Button type="submit" variant="primary" isLoading={isSubmitting}>

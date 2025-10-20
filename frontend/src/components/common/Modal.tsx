@@ -1,5 +1,5 @@
-import React from 'react';
-import { Button } from './Button';
+import React from "react";
+import { Button } from "./Button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -18,8 +18,8 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   onClose,
   onConfirm,
-  confirmText = '확인',
-  cancelText = '취소',
+  confirmText = "확인",
+  cancelText = "취소",
   isLoading = false,
 }) => {
   if (!isOpen) return null;
