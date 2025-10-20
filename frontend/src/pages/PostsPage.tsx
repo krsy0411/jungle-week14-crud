@@ -147,7 +147,7 @@ export const PostsPage: React.FC = () => {
                           isLiked={post.isLiked || false}
                           likeCount={post.likeCount || 0}
                           onToggle={() =>
-                            handleToggleLike(post.id, (post.isLiked || false))
+                            handleToggleLike(post.id, post.isLiked || false)
                           }
                           isLoading={likingPostId === post.id}
                           size="sm"

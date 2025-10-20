@@ -122,7 +122,7 @@ export const PostDetailPage: React.FC = () => {
     try {
       const response = await apiService.toggleLike(
         Number(postId),
-        (post.isLiked || false)
+        post.isLiked || false
       );
       setPost({
         ...post,

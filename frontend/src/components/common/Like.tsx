@@ -25,7 +25,9 @@ export const Like: React.FC<LikeProps> = ({
     <button
       onClick={onToggle}
       disabled={isLoading}
-      className={`flex items-center gap-1 transition-colors ${sizeClasses[size]} ${
+      className={`flex items-center gap-1 transition-colors ${
+        sizeClasses[size]
+      } ${
         isLiked
           ? "text-red-500 hover:text-red-600"
           : "text-secondary-500 hover:text-red-500"
