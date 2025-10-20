@@ -33,7 +33,7 @@ export const CardHeader: React.FC<CardSectionProps> = ({
   children,
   className,
 }) => (
-  <div className={`px-4 py-3 border-b border-secondary-100 ${className}`}>{children}</div>
+  <div className={`px-4 py-3 ${className}`}>{children}</div>
 );
 
 export const CardBody: React.FC<CardSectionProps> = ({

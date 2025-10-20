@@ -27,11 +27,11 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 animate-in">
-        <div className="px-6 py-4 border-b border-secondary-100">
+        <div className="px-6 py-4">
           <h2 className="text-lg font-semibold text-secondary-900">{title}</h2>
         </div>
         <div className="px-6 py-4 max-h-96 overflow-y-auto">{children}</div>
-        <div className="px-6 py-4 border-t border-secondary-100 flex gap-2 justify-end">
+        <div className="px-6 py-4 flex gap-2 justify-end">
           <Button
             variant="secondary"
             size="sm"

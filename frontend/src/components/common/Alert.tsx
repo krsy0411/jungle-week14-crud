@@ -14,28 +14,28 @@ export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) =
       border: 'border-success-200',
       title: 'text-success-900',
       message: 'text-success-700',
-      icon: '✓',
+      icon: '✅',
     },
     error: {
       bg: 'bg-danger-50',
       border: 'border-danger-200',
       title: 'text-danger-900',
       message: 'text-danger-700',
-      icon: '✕',
+      icon: '❌',
     },
     warning: {
       bg: 'bg-yellow-50',
       border: 'border-yellow-200',
       title: 'text-yellow-900',
       message: 'text-yellow-700',
-      icon: '⚠',
+      icon: '⚠️',
     },
     info: {
       bg: 'bg-primary-50',
       border: 'border-primary-200',
       title: 'text-primary-900',
       message: 'text-primary-700',
-      icon: 'ℹ',
+      icon: 'ℹ️',
     },
   };
 
@@ -43,7 +43,7 @@ export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) =
 
   return (
     <div
-      className={`${color.bg} border ${color.border} rounded-lg p-4 flex items-start gap-3`}
+      className={`${color.bg} border ${color.border} rounded-lg p-4 flex justify-center items-center gap-3`}
       role="alert"
     >
       <span className={`text-xl flex-shrink-0 ${color.title}`}>{color.icon}</span>
@@ -54,7 +54,7 @@ export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) =
       {onClose && (
         <button
           onClick={onClose}
-          className={`text-xl flex-shrink-0 ${color.title} hover:opacity-70`}
+          className={`text-3xl flex-shrink-0 ${color.title} hover:opacity-70`}
           aria-label="닫기"
         >
           ×
