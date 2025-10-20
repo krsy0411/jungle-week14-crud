@@ -9,12 +9,14 @@ import { Post } from "./entities/post.entity";
 import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
+import { LikesService } from "../likes/likes.service";
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
-    private postRepository: Repository<Post>
+    private postRepository: Repository<Post>,
+    private likesService: LikesService
   ) {}
   async exists(id: number): Promise<boolean> {
     const count = await this.postRepository.count({ where: { id } });
@@ -38,7 +40,8 @@ export class PostsService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    search?: string
+    search: string | undefined = undefined,
+    userId: number
   ): Promise<any> {
     const skip = (page - 1) * limit;
 
@@ -64,19 +67,44 @@ export class PostsService {
       .groupBy("post.id")
       .getRawMany();
 
+    // likeCounts 추가(한 번의 쿼리로 모든 좋아요 개수 조회)
+    const likeCounts = await this.postRepository
+      .createQueryBuilder("post")
+      .leftJoin("post.likes", "like")
+      .where("post.id IN (:...postIds)", { postIds })
+      .select("post.id", "postId")
+      .addSelect("COUNT(like.id)", "likeCount")
+      .groupBy("post.id")
+      .getRawMany();
+
     // Map으로 변환하여 빠른 조회
     const commentCountMap = new Map(
       commentCounts.map((item) => [item.postId, parseInt(item.commentCount)])
     );
 
-    // 데이터에 댓글 개수 추가
-    const dataWithCommentCount = data.map((post) => ({
+    const likeCountMap = new Map(
+      likeCounts.map((item) => [item.postId, parseInt(item.likeCount)])
+    );
+
+    // isLiked 정보 조회
+    const isLikedMap = new Map<number, boolean>();
+    if (postIds.length > 0) {
+      for (const postId of postIds) {
+        const isLiked = await this.likesService.isLikedByUser(postId, userId);
+        isLikedMap.set(postId, isLiked);
+      }
+    }
+
+    // 데이터에 댓글 개수, 좋아요 개수, isLiked 추가
+    const dataWithCounts = data.map((post) => ({
       ...post,
-      commentCount: commentCountMap.get(post.id) || 0,
+      commentCount: (commentCountMap.get(post.id) || 0),
+      likeCount: (likeCountMap.get(post.id) || 0),
+      isLiked: isLikedMap.get(post.id) || false,
     }));
 
     return {
-      data: dataWithCommentCount,
+      data: dataWithCounts,
       meta: {
         total,
         page,
@@ -86,12 +114,13 @@ export class PostsService {
     };
   }
 
-  async findOne(id: number): Promise<Post> {
-    // 1번의 쿼리로 게시글, 작성자, 댓글 개수 모두 조회
+  async findOne(id: number, userId: number): Promise<Post> {
+    // 1번의 쿼리로 게시글, 작성자, 댓글 개수, 좋아요 개수 모두 조회
     const post = await this.postRepository
       .createQueryBuilder("post")
       .leftJoinAndSelect("post.author", "author")
       .loadRelationCountAndMap("post.commentCount", "post.comments")
+      .loadRelationCountAndMap("post.likeCount", "post.likes")
       .where("post.id = :id", { id })
       .getOne();
 
@@ -99,7 +128,11 @@ export class PostsService {
       throw new NotFoundException("게시글을 찾을 수 없습니다");
     }
 
-    return post as any;
+    // isLiked 정보 추가
+    const result: any = { ...post };
+    result.isLiked = await this.likesService.isLikedByUser(id, userId);
+
+    return result;
   }
 
   async update(
@@ -107,7 +140,7 @@ export class PostsService {
     updatePostDto: PostUpdateRequestDto,
     user: User
   ): Promise<Post> {
-    const post = await this.findOne(id);
+    const post = await this.findOne(id, user.id);
 
     if (post.authorId !== user.id) {
       throw new ForbiddenException("게시글을 수정할 권한이 없습니다");
@@ -118,7 +151,7 @@ export class PostsService {
   }
 
   async remove(id: number, user: User): Promise<void> {
-    const post = await this.findOne(id);
+    const post = await this.findOne(id, user.id);
 
     if (post.authorId !== user.id) {
       throw new ForbiddenException("게시글을 삭제할 권한이 없습니다");

@@ -18,7 +18,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiSecurity,
   ApiQuery,
 } from "@nestjs/swagger";
 import { PostsService } from "./posts.service";
@@ -57,7 +56,8 @@ export class PostsController {
   }
 
   @Get()
-  @ApiSecurity("none")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: "게시글 목록 조회" })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
@@ -67,27 +67,39 @@ export class PostsController {
     description: "게시글 목록 조회 성공",
     type: PostListResponseDto,
   })
+  @ApiResponse({ status: 401, description: "인증 실패" })
   @ApiResponse({ status: 500, description: "서버 내부 오류" })
   async findAll(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
-    @Query("search") search?: string
+    @Query("search") search: string | undefined = undefined,
+    @CurrentUser() user: User
   ) {
-    return await this.postsService.findAll(page, limit, search);
+    return await this.postsService.findAll(
+      page,
+      limit,
+      search,
+      user.id
+    );
   }
 
   @Get(":postId")
-  @ApiSecurity("none")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: "게시글 상세 조회" })
   @ApiResponse({
     status: 200,
     description: "게시글 조회 성공",
     type: PostResponseDto,
   })
+  @ApiResponse({ status: 401, description: "인증 실패" })
   @ApiResponse({ status: 404, description: "게시글을 찾을 수 없음" })
   @ApiResponse({ status: 500, description: "서버 내부 오류" })
-  async findOne(@Param("postId", ParseIntPipe) id: number) {
-    return await this.postsService.findOne(id);
+  async findOne(
+    @Param("postId", ParseIntPipe) id: number,
+    @CurrentUser() user: User
+  ) {
+    return await this.postsService.findOne(id, user.id);
   }
 
   @Patch(":postId")
