@@ -36,6 +36,8 @@ tags:
     description: 게시글 관리 API
   - name: Comments
     description: 댓글 관리 API
+  - name: Likes
+    description: 좋아요 관리 API
 
 # 보안 스킴 정의
 components:
@@ -209,6 +211,14 @@ components:
           type: integer
           description: 댓글 수
           example: 5
+        likeCount:
+          type: integer
+          description: 좋아요 수
+          example: 10
+        isLiked:
+          type: boolean
+          description: 현재 사용자의 좋아요 여부 (인증된 경우만)
+          example: false
         createdAt:
           type: string
           format: date-time
@@ -332,6 +342,22 @@ components:
             $ref: '#/components/schemas/Comment'
         meta:
           $ref: '#/components/schemas/PaginationMeta'
+
+    # 좋아요 스키마
+    LikeResponse:
+      type: object
+      required:
+        - liked
+        - likeCount
+      properties:
+        liked:
+          type: boolean
+          description: 좋아요 상태
+          example: true
+        likeCount:
+          type: integer
+          description: 현재 게시글의 총 좋아요 수
+          example: 11
 
     # Validation 에러 스키마
     ValidationError:
@@ -871,3 +897,54 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  # 좋아요 API
+  /posts/{postId}/like:
+    post:
+      tags:
+        - Likes
+      summary: 게시글 좋아요 추가
+      description: 특정 게시글에 좋아요를 추가합니다 (인증 필요). 이미 좋아요한 경우 무시됩니다.
+      operationId: likePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostIdParam'
+      responses:
+        '200':
+          description: 좋아요 추가 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Likes
+      summary: 게시글 좋아요 취소
+      description: 특정 게시글의 좋아요를 취소합니다 (인증 필요)
+      operationId: unlikePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostIdParam'
+      responses:
+        '200':
+          description: 좋아요 취소 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LikeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
