@@ -118,4 +118,20 @@ export class LikesService {
     });
     return !!like;
   }
+
+  async getLikedPostIdsByUser(
+    postIds: number[],
+    userId: number
+  ): Promise<number[]> {
+    if (!postIds || postIds.length === 0) return [];
+
+    const rows = await this.likeRepository
+      .createQueryBuilder('like')
+      .select('like.postId', 'postId')
+      .where('like.postId IN (:...postIds)', { postIds })
+      .andWhere('like.userId = :userId', { userId })
+      .getRawMany();
+
+    return rows.map((r) => Number(r.postId));
+  }
 }

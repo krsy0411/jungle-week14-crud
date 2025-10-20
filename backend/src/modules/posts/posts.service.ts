@@ -10,14 +10,11 @@ import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { LikesService } from "../likes/likes.service";
-import { LikesService } from "../likes/likes.service";
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
-    private postRepository: Repository<Post>,
-    private likesService: LikesService
     private postRepository: Repository<Post>,
     private likesService: LikesService
   ) {}
@@ -80,16 +77,6 @@ export class PostsService {
       .groupBy("post.id")
       .getRawMany();
 
-    // likeCounts 추가(한 번의 쿼리로 모든 좋아요 개수 조회)
-    const likeCounts = await this.postRepository
-      .createQueryBuilder("post")
-      .leftJoin("post.likes", "like")
-      .where("post.id IN (:...postIds)", { postIds })
-      .select("post.id", "postId")
-      .addSelect("COUNT(like.id)", "likeCount")
-      .groupBy("post.id")
-      .getRawMany();
-
     // Map으로 변환하여 빠른 조회
     const commentCountMap = new Map(
       commentCounts.map((item) => [item.postId, parseInt(item.commentCount)])
@@ -99,12 +86,15 @@ export class PostsService {
       likeCounts.map((item) => [item.postId, parseInt(item.likeCount)])
     );
 
-    // isLiked 정보 조회
+    // isLiked 정보 조회 (배치로 한 번에 조회하여 N+1 문제 방지)
     const isLikedMap = new Map<number, boolean>();
     if (postIds.length > 0) {
-      for (const postId of postIds) {
-        const isLiked = await this.likesService.isLikedByUser(postId, userId);
-        isLikedMap.set(postId, isLiked);
+      const likedPostIds = await this.likesService.getLikedPostIdsByUser(
+        postIds,
+        userId
+      );
+      for (const id of likedPostIds) {
+        isLikedMap.set(id, true);
       }
     }
 
@@ -117,7 +107,6 @@ export class PostsService {
     }));
 
     return {
-      data: dataWithCounts,
       data: dataWithCounts,
       meta: {
         total,
