@@ -10,11 +10,14 @@ import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { LikesService } from "../likes/likes.service";
+import { LikesService } from "../likes/likes.service";
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
+    private postRepository: Repository<Post>,
+    private likesService: LikesService
     private postRepository: Repository<Post>,
     private likesService: LikesService
   ) {}
@@ -77,6 +80,16 @@ export class PostsService {
       .groupBy("post.id")
       .getRawMany();
 
+    // likeCounts 추가(한 번의 쿼리로 모든 좋아요 개수 조회)
+    const likeCounts = await this.postRepository
+      .createQueryBuilder("post")
+      .leftJoin("post.likes", "like")
+      .where("post.id IN (:...postIds)", { postIds })
+      .select("post.id", "postId")
+      .addSelect("COUNT(like.id)", "likeCount")
+      .groupBy("post.id")
+      .getRawMany();
+
     // Map으로 변환하여 빠른 조회
     const commentCountMap = new Map(
       commentCounts.map((item) => [item.postId, parseInt(item.commentCount)])
@@ -105,6 +118,7 @@ export class PostsService {
 
     return {
       data: dataWithCounts,
+      data: dataWithCounts,
       meta: {
         total,
         page,
@@ -120,6 +134,7 @@ export class PostsService {
       .createQueryBuilder("post")
       .leftJoinAndSelect("post.author", "author")
       .loadRelationCountAndMap("post.commentCount", "post.comments")
+      .loadRelationCountAndMap("post.likeCount", "post.likes")
       .loadRelationCountAndMap("post.likeCount", "post.likes")
       .where("post.id = :id", { id })
       .getOne();
