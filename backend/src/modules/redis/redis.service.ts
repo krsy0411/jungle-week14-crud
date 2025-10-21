@@ -1,6 +1,6 @@
-import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { Injectable, OnModuleDestroy, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -9,20 +9,20 @@ export class RedisService implements OnModuleDestroy {
 
   constructor(private configService: ConfigService) {
     this.client = new Redis({
-      host: this.configService.get<string>('REDIS_HOST', 'localhost'),
-      port: this.configService.get<number>('REDIS_PORT', 6379),
+      host: this.configService.get<string>("REDIS_HOST", "localhost"),
+      port: this.configService.get<number>("REDIS_PORT", 6379),
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
     });
 
-    this.client.on('connect', () => {
-      this.logger.log('Redis client connected');
+    this.client.on("connect", () => {
+      this.logger.log("Redis client connected");
     });
 
-    this.client.on('error', (err) => {
-      this.logger.error('Redis client error', err);
+    this.client.on("error", (err) => {
+      this.logger.error("Redis client error", err);
     });
   }
 
@@ -39,7 +39,7 @@ export class RedisService implements OnModuleDestroy {
 
   async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
     const serializedValue =
-      typeof value === 'string' ? value : JSON.stringify(value);
+      typeof value === "string" ? value : JSON.stringify(value);
 
     if (ttlSeconds) {
       await this.client.setex(key, ttlSeconds, serializedValue);
@@ -78,6 +78,6 @@ export class RedisService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.client.quit();
-    this.logger.log('Redis client disconnected');
+    this.logger.log("Redis client disconnected");
   }
 }

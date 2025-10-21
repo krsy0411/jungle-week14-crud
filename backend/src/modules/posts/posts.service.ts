@@ -59,7 +59,9 @@ export class PostsService {
     userId: number
   ): Promise<any> {
     // 캐시 키 생성
-    const cacheKey = `posts:page:${page}:limit:${limit}:search:${search || "none"}:user:${userId}`;
+    const cacheKey = `posts:page:${page}:limit:${limit}:search:${
+      search || "none"
+    }:user:${userId}`;
 
     // 캐시 확인
     const cached = await this.redisService.get<any>(cacheKey);
