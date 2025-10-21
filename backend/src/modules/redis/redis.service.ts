@@ -62,7 +62,7 @@ export class RedisService implements OnModuleDestroy {
         "MATCH",
         pattern,
         "COUNT",
-        ONE_TIME_FIND_COUNT,
+        ONE_TIME_FIND_COUNT
       );
       cursor = nextCursor;
 

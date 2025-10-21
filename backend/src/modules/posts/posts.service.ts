@@ -28,9 +28,16 @@ export class PostsService {
     private likesService: LikesService,
     private redisService: RedisService
   ) {}
-  
-  private getCacheKey(page: number, limit: number, search: string | undefined, userId: number): string {
-    return `posts:page:${page}:limit:${limit}:search:${search || "none"}:user:${userId}`;
+
+  private getCacheKey(
+    page: number,
+    limit: number,
+    search: string | undefined,
+    userId: number
+  ): string {
+    return `posts:page:${page}:limit:${limit}:search:${
+      search || "none"
+    }:user:${userId}`;
   }
 
   async exists(id: number): Promise<boolean> {
@@ -274,7 +281,9 @@ export class PostsService {
    */
   private async getCacheHitRate(): Promise<string> {
     const hits = await this.redisService.getClient().get(this.CACHE_HITS_KEY);
-    const misses = await this.redisService.getClient().get(this.CACHE_MISSES_KEY);
+    const misses = await this.redisService
+      .getClient()
+      .get(this.CACHE_MISSES_KEY);
 
     const cacheHits = parseInt(hits || "0");
     const cacheMisses = parseInt(misses || "0");
