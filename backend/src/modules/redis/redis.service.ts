@@ -53,10 +53,23 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async delByPattern(pattern: string): Promise<void> {
-    const keys = await this.client.keys(pattern);
-    if (keys.length > 0) {
-      await this.client.del(...keys);
-    }
+    const ONE_TIME_FIND_COUNT = 100;
+    let cursor = "0";
+
+    do {
+      const [nextCursor, keys] = await this.client.scan(
+        cursor,
+        "MATCH",
+        pattern,
+        "COUNT",
+        ONE_TIME_FIND_COUNT,
+      );
+      cursor = nextCursor;
+
+      if (keys.length > 0) {
+        await this.client.del(...keys);
+      }
+    } while (cursor !== "0");
   }
 
   async exists(key: string): Promise<boolean> {
@@ -69,6 +82,15 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async reset(): Promise<void> {
+    const nodeEnv = this.configService.get<string>("NODE_ENV");
+
+    if (nodeEnv !== "test") {
+      const errorMsg = `FLUSHDB is not allowed in ${nodeEnv} environment. Only allowed in test environment.`;
+      this.logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    this.logger.warn("[FLUSHDB] Clearing all Redis data in test environment");
     await this.client.flushdb();
   }
 

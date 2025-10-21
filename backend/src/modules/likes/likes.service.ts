@@ -5,7 +5,7 @@ import { Like } from "./entities/like.entity";
 import { Post } from "../posts/entities/post.entity";
 import { User } from "../users/entities/user.entity";
 import { LikeResponseDto } from "./dto/like-response.dto";
-import { RedisService } from "../redis/redis.service";
+import { PostsService } from "../posts/posts.service";
 
 @Injectable()
 export class LikesService {
@@ -16,8 +16,13 @@ export class LikesService {
     private likeRepository: Repository<Like>,
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
-    private redisService: RedisService
+    private postsService: PostsService
   ) {}
+
+  private async invalidatePostListCache(action: string): Promise<void> {
+    await this.postsService.invalidatePostListCache();
+    this.logger.log(`[CACHE INVALIDATED] posts:page:* (${action})`);
+  }
 
   async toggleLike(postId: number, user: User): Promise<LikeResponseDto> {
     // 게시글 존재 확인
@@ -51,8 +56,7 @@ export class LikesService {
     const likeCount = await this.likeRepository.count({ where: { postId } });
 
     // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
-    await this.redisService.delByPattern("posts:page:*");
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (like toggle)`);
+    await this.invalidatePostListCache("like toggle");
 
     return {
       liked,
@@ -81,8 +85,7 @@ export class LikesService {
       await this.likeRepository.save(newLike);
 
       // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
-      await this.redisService.delByPattern("posts:page:*");
-      this.logger.log(`[CACHE INVALIDATED] posts:page:* (like add)`);
+      await this.invalidatePostListCache("like add");
     }
 
     // 현재 좋아요 수 조회
@@ -111,8 +114,7 @@ export class LikesService {
       await this.likeRepository.remove(existingLike);
 
       // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
-      await this.redisService.delByPattern("posts:page:*");
-      this.logger.log(`[CACHE INVALIDATED] posts:page:* (like remove)`);
+      await this.invalidatePostListCache("like remove");
     }
 
     // 현재 좋아요 수 조회

@@ -16,10 +16,11 @@ import { RedisService } from "../redis/redis.service";
 @Injectable()
 export class PostsService {
   private readonly logger = new Logger(PostsService.name);
+  private readonly CACHE_TTL_SECONDS = 60;
 
-  // 캐시 히트율 추적 변수
-  private cacheHits = 0;
-  private cacheMisses = 0;
+  // Redis에 저장할 캐시 통계 키
+  private readonly CACHE_HITS_KEY = "metrics:cache:hits";
+  private readonly CACHE_MISSES_KEY = "metrics:cache:misses";
 
   constructor(
     @InjectRepository(Post)
@@ -27,6 +28,11 @@ export class PostsService {
     private likesService: LikesService,
     private redisService: RedisService
   ) {}
+  
+  private getCacheKey(page: number, limit: number, search: string | undefined, userId: number): string {
+    return `posts:page:${page}:limit:${limit}:search:${search || "none"}:user:${userId}`;
+  }
+
   async exists(id: number): Promise<boolean> {
     const count = await this.postRepository.count({ where: { id } });
 
@@ -59,21 +65,19 @@ export class PostsService {
     userId: number
   ): Promise<any> {
     // 캐시 키 생성
-    const cacheKey = `posts:page:${page}:limit:${limit}:search:${
-      search || "none"
-    }:user:${userId}`;
+    const cacheKey = this.getCacheKey(page, limit, search, userId);
 
     // 캐시 확인
     const cached = await this.redisService.get<any>(cacheKey);
     if (cached) {
-      this.cacheHits++;
-      const hitRate = this.getCacheHitRate();
+      await this.incrementCacheHits();
+      const hitRate = await this.getCacheHitRate();
       this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
       return cached;
     }
 
-    this.cacheMisses++;
-    const hitRate = this.getCacheHitRate();
+    await this.incrementCacheMisses();
+    const hitRate = await this.getCacheHitRate();
     this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
 
     const skip = (page - 1) * limit;
@@ -156,7 +160,7 @@ export class PostsService {
     };
 
     // 캐시 저장 (1분 TTL)
-    await this.redisService.set(cacheKey, result, 60);
+    await this.redisService.set(cacheKey, result, this.CACHE_TTL_SECONDS);
 
     return result;
   }
@@ -248,10 +252,35 @@ export class PostsService {
     await this.redisService.delByPattern("posts:page:*");
   }
 
-  // 캐시 히트율 계산 헬퍼 메서드
-  private getCacheHitRate(): string {
-    const total = this.cacheHits + this.cacheMisses;
+  /**
+   * Redis에서 캐시 히트 카운트를 증가시킵니다.
+   * INCR 명령어는 원자적(atomic) 연산이므로 race condition 걱정 없음
+   */
+  private async incrementCacheHits(): Promise<void> {
+    await this.redisService.getClient().incr(this.CACHE_HITS_KEY);
+  }
+
+  /**
+   * Redis에서 캐시 미스 카운트를 증가시킵니다.
+   * INCR 명령어는 원자적(atomic) 연산이므로 race condition 걱정 없음
+   */
+  private async incrementCacheMisses(): Promise<void> {
+    await this.redisService.getClient().incr(this.CACHE_MISSES_KEY);
+  }
+
+  /**
+   * Redis에서 캐시 히트율을 계산합니다.
+   * 모든 서버 인스턴스의 통계를 합산하여 정확한 전체 히트율 제공
+   */
+  private async getCacheHitRate(): Promise<string> {
+    const hits = await this.redisService.getClient().get(this.CACHE_HITS_KEY);
+    const misses = await this.redisService.getClient().get(this.CACHE_MISSES_KEY);
+
+    const cacheHits = parseInt(hits || "0");
+    const cacheMisses = parseInt(misses || "0");
+    const total = cacheHits + cacheMisses;
+
     if (total === 0) return "0.00";
-    return ((this.cacheHits / total) * 100).toFixed(2);
+    return ((cacheHits / total) * 100).toFixed(2);
   }
 }

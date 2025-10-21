@@ -22,6 +22,11 @@ export class CommentsService {
     private postsService: PostsService
   ) {}
 
+  private async invalidatePostListCache(action: string): Promise<void> {
+    await this.postsService.invalidatePostListCache();
+    this.logger.log(`[CACHE INVALIDATED] posts:page:* (${action})`);
+  }
+
   async create(
     postId: number,
     createCommentDto: CommentCreateRequestDto,
@@ -39,8 +44,7 @@ export class CommentsService {
     const savedComment = await this.commentRepository.save(comment);
 
     // 게시글 목록 캐시 무효화 (commentCount가 변경되었으므로)
-    await this.postsService.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (comment create)`);
+    await this.invalidatePostListCache("comment create");
 
     return savedComment;
   }
@@ -120,7 +124,6 @@ export class CommentsService {
     await this.commentRepository.remove(comment);
 
     // 게시글 목록 캐시 무효화 (commentCount가 변경되었으므로)
-    await this.postsService.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (comment delete)`);
+    await this.invalidatePostListCache("comment delete");
   }
 }
