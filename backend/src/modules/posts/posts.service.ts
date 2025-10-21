@@ -17,6 +17,10 @@ import { RedisService } from "../redis/redis.service";
 export class PostsService {
   private readonly logger = new Logger(PostsService.name);
 
+  // 캐시 히트율 추적 변수
+  private cacheHits = 0;
+  private cacheMisses = 0;
+
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
@@ -60,11 +64,15 @@ export class PostsService {
     // 캐시 확인
     const cached = await this.redisService.get<any>(cacheKey);
     if (cached) {
-      this.logger.log(`[CACHE HIT] ${cacheKey}`);
+      this.cacheHits++;
+      const hitRate = this.getCacheHitRate();
+      this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
       return cached;
     }
 
-    this.logger.log(`[CACHE MISS] ${cacheKey}`);
+    this.cacheMisses++;
+    const hitRate = this.getCacheHitRate();
+    this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
 
     const skip = (page - 1) * limit;
 
@@ -236,5 +244,12 @@ export class PostsService {
   // 캐시 무효화 헬퍼 메서드 (public으로 변경하여 다른 서비스에서도 사용 가능)
   async invalidatePostListCache(): Promise<void> {
     await this.redisService.delByPattern("posts:page:*");
+  }
+
+  // 캐시 히트율 계산 헬퍼 메서드
+  private getCacheHitRate(): string {
+    const total = this.cacheHits + this.cacheMisses;
+    if (total === 0) return "0.00";
+    return ((this.cacheHits / total) * 100).toFixed(2);
   }
 }
