@@ -6,6 +6,7 @@ import { UsersModule } from "./modules/users/users.module";
 import { PostsModule } from "./modules/posts/posts.module";
 import { CommentsModule } from "./modules/comments/comments.module";
 import { LikesModule } from "./modules/likes/likes.module";
+import { RedisModule } from "./modules/redis/redis.module";
 
 @Module({
   /* imports : 다른 모듈을 가져옴 */
@@ -26,6 +27,7 @@ import { LikesModule } from "./modules/likes/likes.module";
         logging: configService.get<string>("NODE_ENV") === "development",
       }),
     }),
+    RedisModule,
     AuthModule,
     UsersModule,
     PostsModule,

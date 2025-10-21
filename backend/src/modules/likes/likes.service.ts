@@ -1,18 +1,22 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Like } from "./entities/like.entity";
 import { Post } from "../posts/entities/post.entity";
 import { User } from "../users/entities/user.entity";
 import { LikeResponseDto } from "./dto/like-response.dto";
+import { RedisService } from "../redis/redis.service";
 
 @Injectable()
 export class LikesService {
+  private readonly logger = new Logger(LikesService.name);
+
   constructor(
     @InjectRepository(Like)
     private likeRepository: Repository<Like>,
     @InjectRepository(Post)
-    private postRepository: Repository<Post>
+    private postRepository: Repository<Post>,
+    private redisService: RedisService
   ) {}
 
   async toggleLike(postId: number, user: User): Promise<LikeResponseDto> {
@@ -46,6 +50,10 @@ export class LikesService {
     // 현재 좋아요 수 조회
     const likeCount = await this.likeRepository.count({ where: { postId } });
 
+    // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
+    await this.redisService.delByPattern("posts:page:*");
+    this.logger.log(`[CACHE INVALIDATED] posts:page:* (like toggle)`);
+
     return {
       liked,
       likeCount,
@@ -71,6 +79,10 @@ export class LikesService {
         userId: user.id,
       });
       await this.likeRepository.save(newLike);
+
+      // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
+      await this.redisService.delByPattern("posts:page:*");
+      this.logger.log(`[CACHE INVALIDATED] posts:page:* (like add)`);
     }
 
     // 현재 좋아요 수 조회
@@ -97,6 +109,10 @@ export class LikesService {
     // 좋아요가 있으면 제거
     if (existingLike) {
       await this.likeRepository.remove(existingLike);
+
+      // 게시글 목록 캐시 무효화 (likeCount가 변경되었으므로)
+      await this.redisService.delByPattern("posts:page:*");
+      this.logger.log(`[CACHE INVALIDATED] posts:page:* (like remove)`);
     }
 
     // 현재 좋아요 수 조회
