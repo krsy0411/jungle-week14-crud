@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Like } from "typeorm";
@@ -10,14 +11,31 @@ import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { LikesService } from "../likes/likes.service";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class PostsService {
+  private readonly logger = new Logger(PostsService.name);
+  private readonly CACHE_TTL_SECONDS = 60;
+
   constructor(
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
-    private likesService: LikesService
+    private likesService: LikesService,
+    private cacheService: CacheService
   ) {}
+
+  private getCacheKey(
+    page: number,
+    limit: number,
+    search: string | undefined,
+    userId: number
+  ): string {
+    return `posts:page:${page}:limit:${limit}:search:${
+      search || "none"
+    }:user:${userId}`;
+  }
+
   async exists(id: number): Promise<boolean> {
     const count = await this.postRepository.count({ where: { id } });
 
@@ -34,7 +52,12 @@ export class PostsService {
       authorId: user.id,
     });
 
-    return await this.postRepository.save(post);
+    const savedPost = await this.postRepository.save(post);
+
+    // 게시글 목록 캐시 무효화
+    await this.cacheService.invalidatePostListCache("post create");
+
+    return savedPost;
   }
 
   async findAll(
@@ -43,6 +66,22 @@ export class PostsService {
     search: string | undefined = undefined,
     userId: number
   ): Promise<any> {
+    // 캐시 키 생성
+    const cacheKey = this.getCacheKey(page, limit, search, userId);
+
+    // 캐시 확인
+    const cached = await this.cacheService.get<any>(cacheKey);
+    if (cached) {
+      await this.cacheService.incrementHits();
+      const hitRate = await this.cacheService.getHitRate();
+      this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
+      return cached;
+    }
+
+    await this.cacheService.incrementMisses();
+    const hitRate = await this.cacheService.getHitRate();
+    this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
+
     const skip = (page - 1) * limit;
 
     const where = search ? { title: Like(`%${search}%`) } : {};
@@ -58,24 +97,30 @@ export class PostsService {
     // commentCount 추가(한 번의 쿼리로 모든 댓글 개수 조회)
     const postIds = data.map((post) => post.id);
 
-    const commentCounts = await this.postRepository
-      .createQueryBuilder("post")
-      .leftJoin("post.comments", "comment")
-      .where("post.id IN (:...postIds)", { postIds })
-      .select("post.id", "postId")
-      .addSelect("COUNT(comment.id)", "commentCount")
-      .groupBy("post.id")
-      .getRawMany();
+    // postIds가 비어있으면 빈 배열 반환
+    let commentCounts = [];
+    let likeCounts = [];
 
-    // likeCounts 추가(한 번의 쿼리로 모든 좋아요 개수 조회)
-    const likeCounts = await this.postRepository
-      .createQueryBuilder("post")
-      .leftJoin("post.likes", "like")
-      .where("post.id IN (:...postIds)", { postIds })
-      .select("post.id", "postId")
-      .addSelect("COUNT(like.id)", "likeCount")
-      .groupBy("post.id")
-      .getRawMany();
+    if (postIds.length > 0) {
+      commentCounts = await this.postRepository
+        .createQueryBuilder("post")
+        .leftJoin("post.comments", "comment")
+        .where("post.id IN (:...postIds)", { postIds })
+        .select("post.id", "postId")
+        .addSelect("COUNT(comment.id)", "commentCount")
+        .groupBy("post.id")
+        .getRawMany();
+
+      // likeCounts 추가(한 번의 쿼리로 모든 좋아요 개수 조회)
+      likeCounts = await this.postRepository
+        .createQueryBuilder("post")
+        .leftJoin("post.likes", "like")
+        .where("post.id IN (:...postIds)", { postIds })
+        .select("post.id", "postId")
+        .addSelect("COUNT(like.id)", "likeCount")
+        .groupBy("post.id")
+        .getRawMany();
+    }
 
     // Map으로 변환하여 빠른 조회
     const commentCountMap = new Map(
@@ -106,7 +151,7 @@ export class PostsService {
       isLiked: isLikedMap.get(post.id) || false,
     }));
 
-    return {
+    const result = {
       data: dataWithCounts,
       meta: {
         total,
@@ -115,6 +160,11 @@ export class PostsService {
         totalPages: Math.ceil(total / limit),
       },
     };
+
+    // 캐시 저장 (1분 TTL)
+    await this.cacheService.set(cacheKey, result, this.CACHE_TTL_SECONDS);
+
+    return result;
   }
 
   async findOne(id: number, userId: number): Promise<Post> {
@@ -123,7 +173,6 @@ export class PostsService {
       .createQueryBuilder("post")
       .leftJoinAndSelect("post.author", "author")
       .loadRelationCountAndMap("post.commentCount", "post.comments")
-      .loadRelationCountAndMap("post.likeCount", "post.likes")
       .loadRelationCountAndMap("post.likeCount", "post.likes")
       .where("post.id = :id", { id })
       .getOne();
@@ -151,7 +200,12 @@ export class PostsService {
     }
 
     this.postRepository.merge(post, updatePostDto);
-    return await this.postRepository.save(post);
+    const updatedPost = await this.postRepository.save(post);
+
+    // 게시글 목록 캐시 무효화
+    await this.cacheService.invalidatePostListCache("post update");
+
+    return updatedPost;
   }
 
   async remove(id: number, user: User): Promise<void> {
@@ -162,6 +216,9 @@ export class PostsService {
     }
 
     await this.postRepository.remove(post);
+
+    // 게시글 목록 캐시 무효화
+    await this.cacheService.invalidatePostListCache("post delete");
   }
 
   async findByAuthor(

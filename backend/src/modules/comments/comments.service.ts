@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -10,14 +11,22 @@ import { CommentCreateRequestDto } from "./dto/comment-create-request.dto";
 import { CommentUpdateRequestDto } from "./dto/comment-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { PostsService } from "../posts/posts.service";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class CommentsService {
+  private readonly logger = new Logger(CommentsService.name);
+
   constructor(
     @InjectRepository(Comment)
     private commentRepository: Repository<Comment>,
-    private postsService: PostsService
+    private postsService: PostsService,
+    private cacheService: CacheService
   ) {}
+
+  private async invalidatePostListCache(action: string): Promise<void> {
+    await this.cacheService.invalidatePostListCache(action);
+  }
 
   async create(
     postId: number,
@@ -33,7 +42,12 @@ export class CommentsService {
       authorId: user.id,
     });
 
-    return await this.commentRepository.save(comment);
+    const savedComment = await this.commentRepository.save(comment);
+
+    // 게시글 목록 캐시 무효화 (commentCount가 변경되었으므로)
+    await this.invalidatePostListCache("comment create");
+
+    return savedComment;
   }
 
   async findByPost(
@@ -109,5 +123,8 @@ export class CommentsService {
     }
 
     await this.commentRepository.remove(comment);
+
+    // 게시글 목록 캐시 무효화 (commentCount가 변경되었으므로)
+    await this.invalidatePostListCache("comment delete");
   }
 }

@@ -4,9 +4,10 @@ import { LikesService } from "./likes.service";
 import { LikesController } from "./likes.controller";
 import { Like } from "./entities/like.entity";
 import { Post } from "../posts/entities/post.entity";
+import { CacheModule } from "../cache/cache.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Like, Post])],
+  imports: [TypeOrmModule.forFeature([Like, Post]), CacheModule],
   controllers: [LikesController],
   providers: [LikesService],
   exports: [LikesService],
