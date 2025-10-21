@@ -11,7 +11,6 @@ import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { LikesService } from "../likes/likes.service";
-import { RedisService } from "../redis/redis.service";
 import { CacheService } from "../cache/cache.service";
 
 @Injectable()
@@ -23,7 +22,6 @@ export class PostsService {
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
     private likesService: LikesService,
-    private redisService: RedisService,
     private cacheService: CacheService
   ) {}
 
@@ -72,7 +70,7 @@ export class PostsService {
     const cacheKey = this.getCacheKey(page, limit, search, userId);
 
     // 캐시 확인
-    const cached = await this.redisService.get<any>(cacheKey);
+    const cached = await this.cacheService.get<any>(cacheKey);
     if (cached) {
       await this.cacheService.incrementHits();
       const hitRate = await this.cacheService.getHitRate();
@@ -164,7 +162,7 @@ export class PostsService {
     };
 
     // 캐시 저장 (1분 TTL)
-    await this.redisService.set(cacheKey, result, this.CACHE_TTL_SECONDS);
+    await this.cacheService.set(cacheKey, result, this.CACHE_TTL_SECONDS);
 
     return result;
   }

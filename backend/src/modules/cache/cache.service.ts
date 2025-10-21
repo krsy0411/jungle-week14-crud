@@ -19,6 +19,25 @@ export class CacheService {
   constructor(private redisService: RedisService) {}
 
   /**
+   * 캐시에서 값을 조회합니다.
+   * @param key 캐시 키
+   * @returns 캐시된 값 또는 null
+   */
+  async get<T>(key: string): Promise<T | null> {
+    return await this.redisService.get<T>(key);
+  }
+
+  /**
+   * 캐시에 값을 저장합니다.
+   * @param key 캐시 키
+   * @param value 저장할 값
+   * @param ttlSeconds TTL (초 단위)
+   */
+  async set<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
+    await this.redisService.set(key, value, ttlSeconds);
+  }
+
+  /**
    * 게시글 목록 캐시를 무효화합니다.
    * @param action 캐시 무효화 이유 (로깅용)
    */
