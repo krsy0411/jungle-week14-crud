@@ -11,6 +11,7 @@ import { CommentCreateRequestDto } from "./dto/comment-create-request.dto";
 import { CommentUpdateRequestDto } from "./dto/comment-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { PostsService } from "../posts/posts.service";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class CommentsService {
@@ -19,12 +20,12 @@ export class CommentsService {
   constructor(
     @InjectRepository(Comment)
     private commentRepository: Repository<Comment>,
-    private postsService: PostsService
+    private postsService: PostsService,
+    private cacheService: CacheService
   ) {}
 
   private async invalidatePostListCache(action: string): Promise<void> {
-    await this.postsService.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (${action})`);
+    await this.cacheService.invalidatePostListCache(action);
   }
 
   async create(

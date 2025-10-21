@@ -5,7 +5,7 @@ import { Like } from "./entities/like.entity";
 import { Post } from "../posts/entities/post.entity";
 import { User } from "../users/entities/user.entity";
 import { LikeResponseDto } from "./dto/like-response.dto";
-import { PostsService } from "../posts/posts.service";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class LikesService {
@@ -16,12 +16,11 @@ export class LikesService {
     private likeRepository: Repository<Like>,
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
-    private postsService: PostsService
+    private cacheService: CacheService
   ) {}
 
   private async invalidatePostListCache(action: string): Promise<void> {
-    await this.postsService.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (${action})`);
+    await this.cacheService.invalidatePostListCache(action);
   }
 
   async toggleLike(postId: number, user: User): Promise<LikeResponseDto> {

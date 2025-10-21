@@ -12,6 +12,7 @@ import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
 import { User } from "../users/entities/user.entity";
 import { LikesService } from "../likes/likes.service";
 import { RedisService } from "../redis/redis.service";
+import { CacheService } from "../cache/cache.service";
 
 @Injectable()
 export class PostsService {
@@ -26,7 +27,8 @@ export class PostsService {
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
     private likesService: LikesService,
-    private redisService: RedisService
+    private redisService: RedisService,
+    private cacheService: CacheService
   ) {}
 
   private getCacheKey(
@@ -59,8 +61,7 @@ export class PostsService {
     const savedPost = await this.postRepository.save(post);
 
     // 게시글 목록 캐시 무효화
-    await this.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (create)`);
+    await this.cacheService.invalidatePostListCache("post create");
 
     return savedPost;
   }
@@ -208,8 +209,7 @@ export class PostsService {
     const updatedPost = await this.postRepository.save(post);
 
     // 게시글 목록 캐시 무효화
-    await this.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (update)`);
+    await this.cacheService.invalidatePostListCache("post update");
 
     return updatedPost;
   }
@@ -224,8 +224,7 @@ export class PostsService {
     await this.postRepository.remove(post);
 
     // 게시글 목록 캐시 무효화
-    await this.invalidatePostListCache();
-    this.logger.log(`[CACHE INVALIDATED] posts:page:* (delete)`);
+    await this.cacheService.invalidatePostListCache("post delete");
   }
 
   async findByAuthor(
@@ -254,10 +253,6 @@ export class PostsService {
     };
   }
 
-  // 캐시 무효화 헬퍼 메서드 (public으로 변경하여 다른 서비스에서도 사용 가능)
-  async invalidatePostListCache(): Promise<void> {
-    await this.redisService.delByPattern("posts:page:*");
-  }
 
   /**
    * Redis에서 캐시 히트 카운트를 증가시킵니다.
