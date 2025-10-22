@@ -1,6 +1,4 @@
-# Fullstack CRUD 게시판 프로젝트
-
-간단한 게시판 CRUD 애플리케이션 - NestJS 백엔드 + React 프론트엔드
+# 정글 10기 | 실력 다지기 프로젝트 - 풀스택 CRUD 애플리케이션
 
 ## 기술 스택
 
@@ -27,84 +25,29 @@
 - **웹서버**: Nginx
 - **CI/CD**: GitHub Actions
 
-## 빠른 시작
+## 화면
 
-### 1. Docker Compose로 전체 스택 실행 (권장)
+### 주요 화면
 
-#### 백엔드 인프라 시작
-```bash
-docker-compose up postgres redis backend
-```
+| **메인 화면** | **게시글 상세 화면** |
+|:---:|:---|
+| ![메인 화면](./assets/img/main.png) | ![게시글 상세](./assets/img/post-detail.png) |
 
-#### 프론트엔드 로컬에서 개발 서버 실행
-```bash
-cd frontend
-```
+### 주요 기능
 
-```bash
-npm run dev
-```
+| **로그인 성공** | **로그인 실패** | **회원가입 유효성 검증** |
+|:---:|:---:|:---:|
+| ![로그인 성공](./assets/gif/login-success.gif) | ![로그인 실패](./assets/gif/login-fail.gif) | ![회원가입 실패](./assets/gif/register-fail.gif) |
 
-- 백엔드: http://localhost:3000
-- 프론트엔드: http://localhost:80
-- PostgreSQL: localhost:5432
-- Redis: localhost:6379
+| **게시글 작성** | **게시글 수정** | **댓글 작성** |
+|:---:|:---:|:---:|
+| ![게시글 작성](./assets/gif/new-post.gif) | ![게시글 수정](./assets/gif/update-post.gif) | ![댓글 작성](./assets/gif/new-comment.gif) |
 
-### 2. 로컬 개발 모드
+| **댓글 삭제** | **좋아요 기능** | **검색 기능** |
+|:---:|:---:|:---:|
+| ![댓글 삭제](./assets/gif/delete-comment.gif) | ![좋아요](./assets/gif/like.gif) | ![검색](./assets/gif/search.gif) |
 
-#### 백엔드 개발
+| **정렬 기능** | **무한 스크롤** |
+|:---:|:---:|
+| ![정렬](./assets/gif/sort.gif) | ![무한 스크롤](./assets/gif/infinite-scroll.gif) |
 
-```bash
-cd backend
-npm install
-npm run start:dev
-```
-
-개발 서버가 http://localhost:3000 에서 실행됩니다.
-
-#### 프론트엔드 개발
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-개발 서버가 http://localhost:5173 에서 실행됩니다.
-
-## 프로젝트 구조
-
-```
-.
-├── backend/                # NestJS 백엔드
-│   ├── src/
-│   │   ├── modules/       # 기능별 모듈
-│   │   │   ├── auth/      # 인증/인가
-│   │   │   ├── users/     # 사용자 관리
-│   │   │   ├── posts/     # 게시글 CRUD
-│   │   │   └── comments/  # 댓글 CRUD
-│   │   ├── common/        # 공통 유틸리티
-│   │   ├── config/        # 설정 파일
-│   │   └── main.ts        # 엔트리포인트
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── package.json
-├── frontend/              # React 프론트엔드
-│   ├── src/
-│   │   ├── components/    # 재사용 컴포넌트
-│   │   ├── pages/         # 페이지 컴포넌트
-│   │   ├── hooks/         # 커스텀 훅
-│   │   ├── services/      # API 클라이언트
-│   │   ├── styles/        # 전역 스타일
-│   │   └── App.tsx
-│   ├── Dockerfile
-│   └── package.json
-├── nginx/                 # Nginx 설정
-├── .github/workflows/     # CI/CD 파이프라인
-└── docker-compose.yml     # 통합 오케스트레이션
-
-```
-
----
-
-상세 기술 스택 및 아키텍처는 `.github/copilot-instructions.md`를 참조하세요.
