@@ -1,30 +1,5 @@
 # 정글 10기 | 실력 다지기 프로젝트 - 풀스택 CRUD 애플리케이션
 
-## 기술 스택
-
-### 백엔드
-- **프레임워크**: NestJS (TypeScript)
-- **ORM**: TypeORM
-- **데이터베이스**: PostgreSQL 16
-- **캐시/세션**: Redis 7
-- **인증**: JWT + Passport
-- **API 문서**: Swagger
-- **테스트**: Jest, Playwright
-
-### 프론트엔드
-- **프레임워크**: React 18 + TypeScript
-- **빌드 도구**: Vite
-- **라우팅**: React Router
-- **상태관리**: Zustand
-- **HTTP 클라이언트**: Axios
-- **스타일링**: Tailwind CSS
-- **테스트**: Jest, React Testing Library
-
-### 인프라
-- **컨테이너**: Docker + Docker Compose
-- **웹서버**: Nginx
-- **CI/CD**: GitHub Actions
-
 ## 화면
 
 ### 주요 화면
@@ -51,3 +26,24 @@
 |:---:|:---:|
 | ![정렬](./assets/gif/sort.gif) | ![무한 스크롤](./assets/gif/infinite-scroll.gif) |
 
+## 문서
+
+### 개요
+- [기술 스택](./docs/stack.md)
+- [프로젝트 구조 및 실행 방법](./docs/about-project.md)
+
+### 프론트엔드
+- [Axios : 인터셉터](./docs/frontend/axios-interceptor.md)
+- [Infinite Scroll](./docs/frontend/infinite-scroll.md)
+- [React 최적화](./docs/frontend/react-optimization.md)
+- [useEffect Cleanup](./docs/frontend/useEffect-cleanup.md)
+
+### 백엔드
+- [ConfigService](./docs/backend/config-service.md)
+- [CurrentUser Decorator](./docs/backend/current-user-decorator.md)
+- [DTO & Entity](./docs/backend/dto-and-entity.md)
+- [Service & Controller](./docs/backend/service-and-controller.md)
+- [JwtAuthGuard](./docs/backend/jwt-auth-guard.md)
+- [Jwt Strategy](./docs/backend/jwt.strategy.md)
+- [Passport](./docs/backend/passport.md)
+- [useFactory](./docs/backend/use-factory.md)
