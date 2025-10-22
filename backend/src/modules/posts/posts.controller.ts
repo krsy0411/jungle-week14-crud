@@ -61,7 +61,6 @@ export class PostsController {
   @ApiOperation({ summary: "게시글 목록 조회" })
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
-  @ApiQuery({ name: "search", required: false, type: String })
   @ApiQuery({
     name: "sortBy",
     required: false,
@@ -78,11 +77,10 @@ export class PostsController {
   async findAll(
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
-    @Query("search") search: string | undefined = undefined,
     @Query("sortBy") sortBy: "latest" | "popular" = "latest",
     @CurrentUser() user: User
   ) {
-    return await this.postsService.findAll(page, limit, search, sortBy, user.id);
+    return await this.postsService.findAll(page, limit, sortBy, user.id);
   }
 
   @Get(":postId")

@@ -5,7 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Like } from "typeorm";
+import { Repository } from "typeorm";
 import { Post } from "./entities/post.entity";
 import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
@@ -25,15 +25,8 @@ export class PostsService {
     private cacheService: CacheService
   ) {}
 
-  private getCacheKey(
-    page: number,
-    limit: number,
-    search: string | undefined,
-    userId: number
-  ): string {
-    return `posts:page:${page}:limit:${limit}:search:${
-      search || "none"
-    }:user:${userId}`;
+  private getCacheKey(page: number, limit: number, userId: number): string {
+    return `posts:page:${page}:limit:${limit}:user:${userId}`;
   }
 
   async exists(id: number): Promise<boolean> {
@@ -63,42 +56,28 @@ export class PostsService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    search: string | undefined = undefined,
     sortBy: "latest" | "popular" = "latest",
     userId: number
   ): Promise<any> {
-    search = search?.trim();
+    const cacheKey = `${this.getCacheKey(page, limit, userId)}:sort:${sortBy}`;
 
-    const useCache = !search;
-    const cacheKey = `${this.getCacheKey(page, limit, search, userId)}:sort:${sortBy}`;
-    
-    // 검색어가 있는 경우 캐시를 우회
-    if (useCache) {
-      // 캐시 확인
-      const cached = await this.cacheService.get<any>(cacheKey);
-      if (cached) {
-        // 캐시 존재(캐시 히트)
-        await this.cacheService.incrementHits();
-        const hitRate = await this.cacheService.getHitRate();
-        this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
-        return cached;
-      }
-
-      // 캐시 미존재(캐시 미스)
-      await this.cacheService.incrementMisses();
+    // 캐시 확인
+    const cached = await this.cacheService.get<any>(cacheKey);
+    if (cached) {
+      await this.cacheService.incrementHits();
       const hitRate = await this.cacheService.getHitRate();
-      this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
-    } else {
-      // 검색 요청은 캐시를 사용하지 않음(우회)
-      this.logger.log(`[CACHE BYPASS] search present -> bypass cache for search='${search}'`);
+      this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
+      return cached;
     }
+
+    await this.cacheService.incrementMisses();
+    const hitRate = await this.cacheService.getHitRate();
+    this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
 
     const skip = (page - 1) * limit;
 
-    const where = search ? { title: Like(`%${search}%`) } : {};
-
-    let data: Post[];
-    let total: number;
+    let data: Post[] = [];
+    let total: number = 0;
 
     if (sortBy === "popular") {
       // 인기순: 좋아요 개수로 정렬
@@ -114,12 +93,6 @@ export class PostsService {
         .skip(skip)
         .take(limit);
 
-      if (search) {
-        queryBuilder.where("post.title LIKE :search", {
-          search: `%${search}%`,
-        });
-      }
-
       data = await queryBuilder.getMany();
 
       // total count 계산
@@ -127,18 +100,11 @@ export class PostsService {
         .createQueryBuilder("post")
         .select("COUNT(DISTINCT post.id)", "count");
 
-      if (search) {
-        countQueryBuilder.where("post.title LIKE :search", {
-          search: `%${search}%`,
-        });
-      }
-
       const countResult = await countQueryBuilder.getRawOne();
       total = parseInt(countResult.count);
     } else {
       // 최신순: 기존 로직
       [data, total] = await this.postRepository.findAndCount({
-        where,
         skip,
         take: limit,
         order: { createdAt: "DESC" },
