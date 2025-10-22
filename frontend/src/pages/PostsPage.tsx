@@ -8,6 +8,7 @@ import {
   Modal,
   Like,
   SortButton,
+  SearchBox,
 } from "../components/common";
 import { apiService } from "../services/api";
 import { Post } from "../types";
@@ -23,12 +24,15 @@ export const PostsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [likingPostId, setLikingPostId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
+  const [search, setSearch] = useState<string | undefined>(undefined);
 
+  // sortBy 변경시 서버에서 다시 조회. 검색은 클라이언트 측에서 처리합니다.
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        const response = await apiService.getPosts(1, 10, undefined, sortBy);
+        // 서버에는 search 파라미터를 보내지 않습니다 (클라이언트 필터로 처리)
+        const response = await apiService.getPosts(1, 100, undefined, sortBy);
         setPosts(response.data);
       } catch (err: any) {
         setError(err.response?.data?.message || "게시글을 불러오지 못했습니다");
@@ -39,6 +43,13 @@ export const PostsPage: React.FC = () => {
 
     fetchPosts();
   }, [sortBy]);
+
+  // 클라이언트 측 필터링 (title에 search 포함 여부)
+  const filteredPosts = React.useMemo(() => {
+    if (!search) return posts;
+    const q = search.trim().toLowerCase();
+    return posts.filter((p) => p.title.toLowerCase().includes(q));
+  }, [posts, search]);
 
   const openDeleteModal = (id: number) => {
     setDeleteTargetId(id);
@@ -95,14 +106,15 @@ export const PostsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-secondary-900">게시글 목록</h1>
         <Button variant="primary" onClick={() => navigate("/posts/create")}>
           새 게시글 작성
         </Button>
+
+        <SortButton sortBy={sortBy} onChange={setSortBy} />
       </div>
 
-      <div className="flex justify-end">
-        <SortButton sortBy={sortBy} onChange={setSortBy} />
+      <div className="w-full">
+        <SearchBox onSearch={setSearch} />
       </div>
 
       {error && (
@@ -117,7 +129,7 @@ export const PostsPage: React.FC = () => {
         />
       )}
 
-      {posts.length === 0 ? (
+      {filteredPosts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-secondary-600 mb-4">게시글이 없습니다</p>
           <Button variant="primary" onClick={() => navigate("/posts/create")}>
@@ -126,7 +138,7 @@ export const PostsPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <Card
               key={post.id}
               hoverable

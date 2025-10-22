@@ -7,3 +7,4 @@ export { LoadingSpinner } from "./LoadingSpinner";
 export { LoadingIcon } from "./LoadingIcon";
 export { Like } from "./Like";
 export { SortButton } from "./SortButton";
+export { SearchBox } from "./SearchBox";
