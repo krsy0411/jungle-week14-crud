@@ -4,11 +4,10 @@ import {
   Button,
   Card,
   CardBody,
-  CardHeader,
-  CardFooter,
   Alert,
   Modal,
   Like,
+  SortButton,
 } from "../components/common";
 import { apiService } from "../services/api";
 import { Post } from "../types";
@@ -23,11 +22,13 @@ export const PostsPage: React.FC = () => {
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [likingPostId, setLikingPostId] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await apiService.getPosts();
+        setIsLoading(true);
+        const response = await apiService.getPosts(1, 10, undefined, sortBy);
         setPosts(response.data);
       } catch (err: any) {
         setError(err.response?.data?.message || "게시글을 불러오지 못했습니다");
@@ -37,7 +38,7 @@ export const PostsPage: React.FC = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [sortBy]);
 
   const openDeleteModal = (id: number) => {
     setDeleteTargetId(id);
@@ -98,6 +99,10 @@ export const PostsPage: React.FC = () => {
         <Button variant="primary" onClick={() => navigate("/posts/create")}>
           새 게시글 작성
         </Button>
+      </div>
+
+      <div className="flex justify-end">
+        <SortButton sortBy={sortBy} onChange={setSortBy} />
       </div>
 
       {error && (
