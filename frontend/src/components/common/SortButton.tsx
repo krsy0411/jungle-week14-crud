@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from './Button';
+import React from "react";
+import { Button } from "./Button";
 
-type SortType = 'latest' | 'popular';
+type SortType = "latest" | "popular";
 
 interface SortButtonProps {
   sortBy: SortType;
@@ -17,15 +17,15 @@ export const SortButton: React.FC<SortButtonProps> = ({ sortBy, onChange }) => {
   return (
     <div className="flex gap-2">
       <Button
-        variant={sortBy === 'latest' ? 'primary' : 'secondary'}
-        onClick={() => onChange('latest')}
+        variant={sortBy === "latest" ? "primary" : "secondary"}
+        onClick={() => onChange("latest")}
         className="px-4 py-2 text-sm"
       >
         최신순
       </Button>
       <Button
-        variant={sortBy === 'popular' ? 'primary' : 'secondary'}
-        onClick={() => onChange('popular')}
+        variant={sortBy === "popular" ? "primary" : "secondary"}
+        onClick={() => onChange("popular")}
         className="px-4 py-2 text-sm"
       >
         인기순

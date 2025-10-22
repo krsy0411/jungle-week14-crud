@@ -30,7 +30,7 @@ export const PostsPage: React.FC = () => {
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [likingPostId, setLikingPostId] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<'latest' | 'popular'>('latest');
+  const [sortBy, setSortBy] = useState<"latest" | "popular">("latest");
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -67,10 +67,14 @@ export const PostsPage: React.FC = () => {
       setIsLoadingMore(true);
 
       // 시각적 효과를 위한 1.5초 딜레이
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const nextPage = page + 1;
-      const response = await apiService.getPosts(nextPage, POSTS_PER_PAGE, sortBy);
+      const response = await apiService.getPosts(
+        nextPage,
+        POSTS_PER_PAGE,
+        sortBy
+      );
 
       if (response.data.length > 0) {
         setPosts((prev) => [...prev, ...response.data]);
@@ -80,7 +84,9 @@ export const PostsPage: React.FC = () => {
         setHasMore(false);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "추가 게시글을 불러오지 못했습니다");
+      setError(
+        err.response?.data?.message || "추가 게시글을 불러오지 못했습니다"
+      );
     } finally {
       setIsLoadingMore(false);
     }
@@ -189,7 +195,11 @@ export const PostsPage: React.FC = () => {
               <span>추가 게시글 로딩중...</span>
             </div>
           }
-          endMessage={<p className="text-secondary-500 text-sm">🎊 모든 게시글을 불러왔습니다 🎊</p>}
+          endMessage={
+            <p className="text-secondary-500 text-sm">
+              🎊 모든 게시글을 불러왔습니다 🎊
+            </p>
+          }
           threshold={THRESHOLD}
         >
           <div className="space-y-4">
@@ -236,9 +246,7 @@ export const PostsPage: React.FC = () => {
                 <CardFooter>
                   <div className="flex items-center gap-4 text-sm text-secondary-500">
                     <span>{post.author.username}</span>
-                    <span>
-                      {new Date(post.createdAt).toLocaleDateString()}
-                    </span>
+                    <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                     <span>💬 {post.commentCount || 0}</span>
                     <div onClick={(e) => e.stopPropagation()}>
                       <Like

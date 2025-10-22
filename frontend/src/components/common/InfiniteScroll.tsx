@@ -16,7 +16,9 @@ export const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
   hasMore,
   isLoading,
   loader = <p className="text-secondary-600">로딩중...</p>,
-  endMessage = <p className="text-secondary-500 text-sm">모든 항목을 불러왔습니다</p>,
+  endMessage = (
+    <p className="text-secondary-500 text-sm">모든 항목을 불러왔습니다</p>
+  ),
   threshold = 1.0,
 }) => {
   const observerTarget = useRef<HTMLDivElement>(null);
