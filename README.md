@@ -26,6 +26,9 @@
 |:---:|:---:|
 | ![정렬](./assets/gif/sort.gif) | ![무한 스크롤](./assets/gif/infinite-scroll.gif) |
 
+## 아키텍처
+![아키텍처](./assets/img/architecture.png)
+
 ## 문서
 
 ### 개요
