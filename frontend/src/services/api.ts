@@ -64,11 +64,10 @@ class ApiService {
   async getPosts(
     page: number = 1,
     limit: number = 10,
-    search?: string,
     sortBy: 'latest' | 'popular' = 'latest'
   ): Promise<PaginatedResponse<Post>> {
     const response = await this.client.get("/posts", {
-      params: { page, limit, search, sortBy },
+      params: { page, limit, sortBy },
     });
     return response.data;
   }

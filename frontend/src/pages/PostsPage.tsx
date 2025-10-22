@@ -32,7 +32,7 @@ export const PostsPage: React.FC = () => {
       try {
         setIsLoading(true);
         // 서버에는 search 파라미터를 보내지 않습니다 (클라이언트 필터로 처리)
-        const response = await apiService.getPosts(1, 100, undefined, sortBy);
+        const response = await apiService.getPosts(1, 100, sortBy);
         setPosts(response.data);
       } catch (err: any) {
         setError(err.response?.data?.message || "게시글을 불러오지 못했습니다");
