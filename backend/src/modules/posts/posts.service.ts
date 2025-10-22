@@ -67,21 +67,31 @@ export class PostsService {
     sortBy: "latest" | "popular" = "latest",
     userId: number
   ): Promise<any> {
-    // 캐시 키 생성 (sortBy 포함)
+    search = search?.trim();
+
+    const useCache = !search;
     const cacheKey = `${this.getCacheKey(page, limit, search, userId)}:sort:${sortBy}`;
+    
+    // 검색어가 있는 경우 캐시를 우회
+    if (useCache) {
+      // 캐시 확인
+      const cached = await this.cacheService.get<any>(cacheKey);
+      if (cached) {
+        // 캐시 존재(캐시 히트)
+        await this.cacheService.incrementHits();
+        const hitRate = await this.cacheService.getHitRate();
+        this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
+        return cached;
+      }
 
-    // 캐시 확인
-    const cached = await this.cacheService.get<any>(cacheKey);
-    if (cached) {
-      await this.cacheService.incrementHits();
+      // 캐시 미존재(캐시 미스)
+      await this.cacheService.incrementMisses();
       const hitRate = await this.cacheService.getHitRate();
-      this.logger.log(`[CACHE HIT] ${cacheKey} | Hit Rate: ${hitRate}%`);
-      return cached;
+      this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
+    } else {
+      // 검색 요청은 캐시를 사용하지 않음(우회)
+      this.logger.log(`[CACHE BYPASS] search present -> bypass cache for search='${search}'`);
     }
-
-    await this.cacheService.incrementMisses();
-    const hitRate = await this.cacheService.getHitRate();
-    this.logger.log(`[CACHE MISS] ${cacheKey} | Hit Rate: ${hitRate}%`);
 
     const skip = (page - 1) * limit;
 
