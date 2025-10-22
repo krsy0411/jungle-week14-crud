@@ -64,10 +64,11 @@ export class PostsService {
     page: number = 1,
     limit: number = 10,
     search: string | undefined = undefined,
+    sortBy: "latest" | "popular" = "latest",
     userId: number
   ): Promise<any> {
-    // 캐시 키 생성
-    const cacheKey = this.getCacheKey(page, limit, search, userId);
+    // 캐시 키 생성 (sortBy 포함)
+    const cacheKey = `${this.getCacheKey(page, limit, search, userId)}:sort:${sortBy}`;
 
     // 캐시 확인
     const cached = await this.cacheService.get<any>(cacheKey);
@@ -86,13 +87,54 @@ export class PostsService {
 
     const where = search ? { title: Like(`%${search}%`) } : {};
 
-    const [data, total] = await this.postRepository.findAndCount({
-      where,
-      skip,
-      take: limit,
-      order: { createdAt: "DESC" },
-      relations: ["author"],
-    });
+    let data: Post[];
+    let total: number;
+
+    if (sortBy === "popular") {
+      // 인기순: 좋아요 개수로 정렬
+      const queryBuilder = this.postRepository
+        .createQueryBuilder("post")
+        .leftJoinAndSelect("post.author", "author")
+        .leftJoin("post.likes", "like")
+        .groupBy("post.id")
+        .addGroupBy("author.id")
+        .addSelect("COUNT(like.id)", "like_count")
+        .orderBy("like_count", "DESC")
+        .addOrderBy("post.createdAt", "DESC") // 좋아요 수가 같으면 최신순
+        .skip(skip)
+        .take(limit);
+
+      if (search) {
+        queryBuilder.where("post.title LIKE :search", {
+          search: `%${search}%`,
+        });
+      }
+
+      data = await queryBuilder.getMany();
+
+      // total count 계산
+      const countQueryBuilder = this.postRepository
+        .createQueryBuilder("post")
+        .select("COUNT(DISTINCT post.id)", "count");
+
+      if (search) {
+        countQueryBuilder.where("post.title LIKE :search", {
+          search: `%${search}%`,
+        });
+      }
+
+      const countResult = await countQueryBuilder.getRawOne();
+      total = parseInt(countResult.count);
+    } else {
+      // 최신순: 기존 로직
+      [data, total] = await this.postRepository.findAndCount({
+        where,
+        skip,
+        take: limit,
+        order: { createdAt: "DESC" },
+        relations: ["author"],
+      });
+    }
 
     // commentCount 추가(한 번의 쿼리로 모든 댓글 개수 조회)
     const postIds = data.map((post) => post.id);

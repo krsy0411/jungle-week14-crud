@@ -62,6 +62,12 @@ export class PostsController {
   @ApiQuery({ name: "page", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @ApiQuery({ name: "search", required: false, type: String })
+  @ApiQuery({
+    name: "sortBy",
+    required: false,
+    enum: ["latest", "popular"],
+    description: "정렬 기준 (latest: 최신순, popular: 인기순)",
+  })
   @ApiResponse({
     status: 200,
     description: "게시글 목록 조회 성공",
@@ -73,9 +79,10 @@ export class PostsController {
     @Query("page") page: number = 1,
     @Query("limit") limit: number = 10,
     @Query("search") search: string | undefined = undefined,
+    @Query("sortBy") sortBy: "latest" | "popular" = "latest",
     @CurrentUser() user: User
   ) {
-    return await this.postsService.findAll(page, limit, search, user.id);
+    return await this.postsService.findAll(page, limit, search, sortBy, user.id);
   }
 
   @Get(":postId")
