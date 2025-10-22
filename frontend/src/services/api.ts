@@ -63,10 +63,11 @@ class ApiService {
   // ========== Posts ==========
   async getPosts(
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    sortBy: "latest" | "popular" = "latest"
   ): Promise<PaginatedResponse<Post>> {
     const response = await this.client.get("/posts", {
-      params: { page, limit },
+      params: { page, limit, sortBy },
     });
     return response.data;
   }

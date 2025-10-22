@@ -5,7 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, Like } from "typeorm";
+import { Repository } from "typeorm";
 import { Post } from "./entities/post.entity";
 import { PostCreateRequestDto } from "./dto/post-create-request.dto";
 import { PostUpdateRequestDto } from "./dto/post-update-request.dto";
@@ -25,15 +25,8 @@ export class PostsService {
     private cacheService: CacheService
   ) {}
 
-  private getCacheKey(
-    page: number,
-    limit: number,
-    search: string | undefined,
-    userId: number
-  ): string {
-    return `posts:page:${page}:limit:${limit}:search:${
-      search || "none"
-    }:user:${userId}`;
+  private getCacheKey(page: number, limit: number, userId: number): string {
+    return `posts:page:${page}:limit:${limit}:user:${userId}`;
   }
 
   async exists(id: number): Promise<boolean> {
@@ -63,11 +56,10 @@ export class PostsService {
   async findAll(
     page: number = 1,
     limit: number = 10,
-    search: string | undefined = undefined,
+    sortBy: "latest" | "popular" = "latest",
     userId: number
   ): Promise<any> {
-    // 캐시 키 생성
-    const cacheKey = this.getCacheKey(page, limit, search, userId);
+    const cacheKey = `${this.getCacheKey(page, limit, userId)}:sort:${sortBy}`;
 
     // 캐시 확인
     const cached = await this.cacheService.get<any>(cacheKey);
@@ -84,15 +76,41 @@ export class PostsService {
 
     const skip = (page - 1) * limit;
 
-    const where = search ? { title: Like(`%${search}%`) } : {};
+    let data: Post[] = [];
+    let total: number = 0;
 
-    const [data, total] = await this.postRepository.findAndCount({
-      where,
-      skip,
-      take: limit,
-      order: { createdAt: "DESC" },
-      relations: ["author"],
-    });
+    if (sortBy === "popular") {
+      // 인기순: 좋아요 개수로 정렬
+      const queryBuilder = this.postRepository
+        .createQueryBuilder("post")
+        .leftJoinAndSelect("post.author", "author")
+        .leftJoin("post.likes", "like")
+        .groupBy("post.id")
+        .addGroupBy("author.id")
+        .addSelect("COUNT(like.id)", "like_count")
+        .orderBy("like_count", "DESC")
+        .addOrderBy("post.createdAt", "DESC") // 좋아요 수가 같으면 최신순
+        .skip(skip)
+        .take(limit);
+
+      data = await queryBuilder.getMany();
+
+      // total count 계산
+      const countQueryBuilder = this.postRepository
+        .createQueryBuilder("post")
+        .select("COUNT(DISTINCT post.id)", "count");
+
+      const countResult = await countQueryBuilder.getRawOne();
+      total = parseInt(countResult.count);
+    } else {
+      // 최신순: 기존 로직
+      [data, total] = await this.postRepository.findAndCount({
+        skip,
+        take: limit,
+        order: { createdAt: "DESC" },
+        relations: ["author"],
+      });
+    }
 
     // commentCount 추가(한 번의 쿼리로 모든 댓글 개수 조회)
     const postIds = data.map((post) => post.id);

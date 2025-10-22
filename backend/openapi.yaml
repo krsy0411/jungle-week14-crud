@@ -408,14 +408,6 @@ components:
         maximum: 100
         default: 10
 
-    SearchParam:
-      name: search
-      in: query
-      description: 검색 키워드
-      required: false
-      schema:
-        type: string
-
     PostIdParam:
       name: postId
       in: path
@@ -606,13 +598,12 @@ paths:
       tags:
         - Posts
       summary: 게시글 목록 조회
-      description: 페이지네이션과 검색을 지원하는 게시글 목록을 조회합니다
+      description: 페이지네이션을 지원하는 게시글 목록을 조회합니다
       operationId: getPosts
       security: []
       parameters:
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/LimitParam'
-        - $ref: '#/components/parameters/SearchParam'
       responses:
         '200':
           description: 게시글 목록 조회 성공
